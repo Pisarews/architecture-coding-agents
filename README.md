@@ -10,8 +10,10 @@ tasks per domain in sequence in each variant, building on its own previous chang
 measure success (hidden acceptance tests), cost (tokens, steps, time), and architectural
 erosion (cycles, coupling, ArchUnit conformance, static analysis).
 
-- Preregistration: [PREREGISTRATION.md](PREREGISTRATION.md) (frozen copy on OSF: `TODO`)
-- OSF project: `TODO https://osf.io/XXXXX/`
+- Preregistration: [PREREGISTRATION.md](PREREGISTRATION.md), frozen as git tag `prereg-v1`; registered on OSF as
+  https://osf.io/r5t3d (2026-10-13 09:25 UTC, OSF Preregistration template, embargoed until 2027-07-31).
+  The earlier open-ended registration of the study idea is https://osf.io/w467e (2026-10-05).
+- OSF project: https://osf.io/rneym (private until data collection ends)
 - Open-science workflow: [OSF-SETUP.md](OSF-SETUP.md)
 - Variant rules: [ARCHITECTURES.md](ARCHITECTURES.md) · FHIR contract: [fhir/SPEC.md](fhir/SPEC.md)
 - Related repositories, tools, and training-exposure probes: [RELATED-REPOS.md](RELATED-REPOS.md)
@@ -42,16 +44,15 @@ DEVIATIONS.md    every change after preregistration, dated
 
 ## Status
 
-- [ ] Resolve DECIDE items in the preregistration
 - [x] FHIR: 3 baseline variants pass the equivalence gate (see fhir/EQUIVALENCE.md)
 - [ ] ORDERS: 3 baseline variants + equivalence gate
 - [x] FHIR: 24 tasks with hidden tests, validated on all 3 baselines (harness/validate_tasks.py)
 - [ ] ORDERS tasks
 - [x] Harness (mini-swe-agent 2.4.6, Docker sandbox, grader, night/day queue) + pilot P1–P3 (18 attempts, $0.55)
-- [ ] Erosion metrics pipeline · shakedown trajectory · frozen analysis script · independent review
+- [x] Erosion metrics pipeline, shakedown trajectory, frozen analysis script (no independent human review; stated limitation)
 - [x] Sensitivity analysis (analysis/power_sim.py)
-- [ ] Freeze and register on OSF
-- [ ] Phase 1 data collection (FHIR, 30 trajectories, 720 attempts)
+- [x] Frozen (tag prereg-v1) and registered on OSF (r5t3d)
+- [ ] Phase 1 data collection (FHIR, 30 trajectories, 720 attempts): `harness/run_phase1.py`
 - [ ] Analysis, preprint
 
 ## License

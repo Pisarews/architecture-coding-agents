@@ -27,11 +27,14 @@ def main() -> int:
     ap.add_argument("--plan", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--window", default=None)
+    ap.add_argument("--runs", default=None, help="comma-separated subset of the plan's runs (parallel workers)")
     args = ap.parse_args()
     plan = yaml.safe_load(Path(args.plan).read_text())
+    if args.runs:
+        plan["runs"] = [int(r) for r in args.runs.split(",")]
     trajs = [dict(domain=d, variant=v, model=m, run=r)
              for d, v, m, r in itertools.product(plan["domains"], plan["variants"], plan["models"], plan["runs"])]
-    rng = random.Random(plan.get("seed", 20261011))
+    rng = random.Random(plan.get("seed", 20261011) + 1000 * min(plan["runs"]))
     tasks = ",".join(plan["tasks"])
     finished: set[int] = set()
     # one pass per task position, plus extra passes that pick up attempts retried after infra failures
