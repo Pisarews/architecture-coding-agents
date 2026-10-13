@@ -16,7 +16,7 @@ Strata: **D** domain rule (1 unit), **F** feature (3+ units), **C** cross-cuttin
 For integration tasks, the harness starts the app with the listed property pointing at a
 mock server that the hidden tests control.
 
-## Phase 1 selection (12 of 24, 3 per stratum, original order kept)
+## Earlier 12-task selection (superseded: Phase 1 uses all 24 tasks, see PREREGISTRATION §2.3)
 
 `T01 T02 T03 T04 T06 T07 T08 T09 T10 T11 T12 T21`
 

@@ -29,6 +29,9 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
 
 SEED = 20261012
 N_FLIPS = 100_000
@@ -213,6 +216,75 @@ def slope_tests(name: str, slopes: dict[str, float], meta: dict[str, dict], pair
     return {"hypothesis": name, "contrasts": out}
 
 
+
+# ---------------------------------------------------------------- secondary models (§6.1) and sensitivity (§6.5)
+
+def dependency_failed(res: list[dict]) -> dict[tuple[str, str], int]:
+    """1 if any task this one declares in meta.yaml `depends_on` failed earlier in the same trajectory."""
+    deps = {}
+    for meta in (ROOT / "fhir" / "tasks").glob("T*/meta.yaml"):
+        m = yaml.safe_load(meta.read_text())
+        deps[m["id"]] = m.get("depends_on") or []
+    ok = {(r["trajectory"], r["task"]): bool(r.get("success")) for r in res}
+    return {(r["trajectory"], r["task"]): int(any(not ok.get((r["trajectory"], d), True) for d in deps.get(r["task"], [])))
+            for r in res}
+
+
+def secondary_models(res: list[dict], ero_series: dict | None, by_traj: dict | None) -> dict:
+    """GLMM / LMMs for effect estimation. Failures are reported, never fatal."""
+    out: dict = {}
+    try:
+        import pandas as pd
+        import statsmodels.formula.api as smf
+        from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
+    except Exception as e:  # noqa: BLE001
+        return {"error": f"statsmodels unavailable: {e}"}
+    df = pd.DataFrame([{**r, "succ": int(bool(r.get("success"))),
+                        "logtok": math.log(r["prompt_tokens"] + r["completion_tokens"] + 1)} for r in res])
+    dep = dependency_failed(res)
+    df["dependency_failed"] = [dep[(t, k)] for t, k in zip(df["trajectory"], df["task"])]
+    out["dependency_failed_count"] = int(df["dependency_failed"].sum())
+    fixed = "C(variant, Treatment('none')) * C(model)"
+    vc = {"task": "0 + C(task)", "traj": "0 + C(trajectory)"}
+
+    def glmm(formula):
+        m = BinomialBayesMixedGLM.from_formula(formula, vc, df).fit_vb()
+        return {n: {"post_mean_logodds": float(mu), "post_sd": float(sd)}
+                for n, mu, sd in zip(m.model.exog_names, m.fe_mean, m.fe_sd) if "variant" in n}
+    try:
+        out["glmm_success"] = glmm(f"succ ~ {fixed}")
+    except Exception as e:  # noqa: BLE001
+        out["glmm_success"] = {"error": str(e)[:300]}
+    try:
+        if out["dependency_failed_count"] > 0:
+            out["glmm_success_with_dependency_failed"] = glmm(f"succ ~ {fixed} + dependency_failed")
+        else:
+            out["glmm_success_with_dependency_failed"] = "not estimable: no attempt has a failed declared dependency"
+    except Exception as e:  # noqa: BLE001
+        out["glmm_success_with_dependency_failed"] = {"error": str(e)[:300]}
+    try:
+        df["one"] = 1
+        m = smf.mixedlm(f"logtok ~ {fixed}", df, groups="one", vc_formula=vc).fit(reml=True)
+        ci = m.conf_int()
+        out["lmm_logtokens"] = {n: {"coef": float(m.params[n]), "ci95": [float(ci.loc[n, 0]), float(ci.loc[n, 1])],
+                                    "p": float(m.pvalues[n])} for n in m.params.index if "variant" in n}
+    except Exception as e:  # noqa: BLE001
+        out["lmm_logtokens"] = {"error": str(e)[:300]}
+    if ero_series and by_traj:
+        try:
+            rows = [{"trajectory": t, "variant": by_traj[t][0]["variant"], "task_index": x, "idx": y}
+                    for t, pts in ero_series.items() for x, y in pts]
+            de = pd.DataFrame(rows)
+            m = smf.mixedlm("idx ~ C(variant, Treatment('none')) * task_index", de, groups="trajectory",
+                            re_formula="~task_index").fit(reml=True)
+            ci = m.conf_int()
+            out["lmm_erosion"] = {n: {"coef": float(m.params[n]), "ci95": [float(ci.loc[n, 0]), float(ci.loc[n, 1])],
+                                      "p": float(m.pvalues[n])} for n in m.params.index if "task_index" in n}
+        except Exception as e:  # noqa: BLE001
+            out["lmm_erosion"] = {"error": str(e)[:300]}
+    return out
+
+
 # ---------------------------------------------------------------- main
 
 def main(run: Path) -> dict:
@@ -271,8 +343,18 @@ def main(run: Path) -> dict:
         report["tests"].append(h2)
         conf = {t: slope([(r["task_index"], r["conformance_own"]) for r in rows])
                 for t, rows in by_traj.items() if meta[t]["variant"] in ("layered", "hexagonal")}
-        report["tests"].append(slope_tests("H6 conformance-violation slope", conf, meta, [("hexagonal", "layered")], rng))
+        h6 = slope_tests("H6 conformance-violation slope", conf, meta, [("hexagonal", "layered")], rng)
+        # H6 also states that violations build up (slope > 0): sign-flip test on per-trajectory slopes
+        for arm in ("layered", "hexagonal", "both"):
+            v = np.array([sl for t, sl in conf.items() if not math.isnan(sl) and (arm == "both" or meta[t]["variant"] == arm)])
+            if len(v):
+                h6["contrasts"][f"slope>0 ({arm})"] = {"mean_diff": float(v.mean()), "ci95": list(bootstrap_ci(v, rng)),
+                                                      "p": signflip_test(v, rng), "n_traj": int(len(v))}
+        report["tests"].append(h6)
 
+    by_traj_all = erosion_table(ero) if ero else None
+    series_all = erosion_index(by_traj_all)[0] if ero else None
+    report["secondary_models"] = secondary_models(res, series_all, by_traj_all)
     (run / "analysis.json").write_text(json.dumps(report, indent=2))
     (run / "analysis.md").write_text(to_markdown(report))
     return report
@@ -291,6 +373,10 @@ def to_markdown(rep: dict) -> str:
                 out.append(f"| {k} | {fmt(est)} | [{fmt(ci[0])}, {fmt(ci[1])}] | {fmt(v.get('p'))} | {fmt(v.get('p_holm'))} |")
         else:
             out.append(f"diff={t.get('diff')} p={t.get('p')}")
+    sm = rep.get("secondary_models")
+    if sm:
+        out.append("\n## Secondary models (effect estimation)\n")
+        out.append("```\n" + json.dumps(sm, indent=2)[:6000] + "\n```")
     return "\n".join(out) + "\n"
 
 

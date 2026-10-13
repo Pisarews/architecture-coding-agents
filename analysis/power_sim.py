@@ -25,14 +25,15 @@ import itertools
 import numpy as np
 
 RNG = np.random.default_rng(20261012)
-N_TASKS = 12
+N_TASKS = 24  # Phase 1 design; the registered sensitivity figures use 24 tasks x 5 runs
 N_MODELS = 2
 SIMS = 2000
 SD_TASK = 1.5
 SD_TRAJ = 0.5
 MODEL_GAP = 1.0
 MU = 1.4  # ~0.75 mean success in the reference arm
-SIGNS = np.array(list(itertools.product([-1, 1], repeat=N_TASKS)))
+SIGNS = (np.array(list(itertools.product([-1, 1], repeat=N_TASKS))) if N_TASKS <= 14
+         else RNG.choice([-1, 1], size=(4096, N_TASKS)))  # random flips when exact enumeration is too large
 
 
 def signflip_p(d: np.ndarray) -> float:
@@ -61,7 +62,7 @@ def simulate(delta: float, runs: int) -> tuple[float, float]:
 
 def main() -> None:
     print(f"tasks={N_TASKS} models={N_MODELS} sims={SIMS} sd_task={SD_TASK} sd_traj={SD_TRAJ}")
-    for runs in (3, 5):
+    for runs in (3, 5, 10):
         print(f"\nruns per cell = {runs}  (attempts per arm = {N_TASKS * N_MODELS * runs})")
         print(f"{'logit delta':>11} {'mean pp diff':>13} {'power a=.05':>12} {'power a=.0167':>14}")
         for delta in (-0.4, -0.7, -1.0, -1.3, -1.6, -2.0):

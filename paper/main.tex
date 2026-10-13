@@ -1,0 +1,924 @@
+\documentclass[10pt]{article}
+
+% ---------------------------------------------------------------------------
+% First full draft. Written BLIND to the Phase 1 outcomes: every confirmatory number is a
+% \RESULT{key} placeholder, filled in after analysis/analyze.py has run on data/phase1.
+% Build: tectonic main.tex   (bibliography: refs.bib, run automatically)
+% Placeholder keys are also written to the log as "RESULTKEY: <key>".
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{newtxtext,newtxmath}
+\usepackage[a4paper,margin=1in]{geometry}
+\setlength{\emergencystretch}{3em}
+\usepackage[htt]{hyphenat}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit}
+\definecolor{linknavy}{rgb}{0.13,0.29,0.53}
+\definecolor{resred}{rgb}{0.70,0.05,0.05}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[font=small,labelfont=bf,skip=6pt]{caption}
+\usepackage[numbers,sort&compress]{natbib}
+\setlength{\bibsep}{1.5pt plus 0.5pt}
+\renewcommand{\bibfont}{\small}
+\usepackage[colorlinks=true,allcolors=linknavy]{hyperref}
+
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.5ex plus 1ex minus .2ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1.2ex plus 1ex minus .2ex}{0.5ex}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.3pt}
+\fancyhead[L]{\small\itshape Architecture and AI Coding Agents: a Preregistered Experiment}
+\fancyhead[R]{\small\itshape Draft --- results blinded}
+\fancyfoot[C]{\small\thepage}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+\renewenvironment{abstract}{%
+  \begin{center}\rule{\textwidth}{0.4pt}\end{center}\vspace{-0.9em}
+  \begin{quotation}\small\noindent\textbf{Abstract.}\enspace}
+  {\end{quotation}\vspace{-0.6em}\begin{center}\rule{\textwidth}{0.4pt}\end{center}\vspace{0.4em}}
+
+% ---------------------------------------------------------------- placeholders
+% \RESULT{key}: a confirmatory or descriptive number from Phase 1, not yet known.
+\newcommand{\RESULT}[1]{\typeout{RESULTKEY: #1}\textcolor{resred}{\textbf{[#1]}}}
+% \TODO{text}: an author note that must be resolved before submission.
+\newcommand{\TODO}[1]{\textcolor{orange!70!black}{\textsf{\small[TODO: #1]}}}
+% One row of a contrast table: estimate, 95% CI, p, Holm-adjusted p.
+% #1 hypothesis, #2 contrast key, #3 row label, #4 estimate suffix
+\newcommand{\crow}[4]{#3 & \RESULT{#1-#2-#4} & \RESULT{#1-#2-ci} & \RESULT{#1-#2-p} & \RESULT{#1-#2-pholm}\\}
+% Figure that compiles before the figure file exists.
+\newcommand{\maybefig}[2]{%
+  \IfFileExists{#1}{\includegraphics[width=#2]{#1}}{%
+    \fbox{\parbox[c][3.2cm][c]{#2}{\centering\small\textsf{Figure pending: \texttt{\detokenize{#1}}}\\[2pt]
+    \textsf{(produced from data/phase1 after unblinding)}}}}}
+
+\newcommand{\NONE}{\textsc{None}}
+\newcommand{\LAY}{\textsc{Layered}}
+\newcommand{\HEX}{\textsc{Hexagonal}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\vspace{-1.3em}\bfseries\Large Does Architecture Help or Hinder AI Coding Agents?\\[0.4em]
+\large\mdseries A Preregistered Experiment with Layered and Hexagonal Variants\\ of an Evolving Java Service}
+
+\author{%
+  Tomasz Pisarewski\\
+  \normalsize Fide-Soft\\
+  \normalsize \texttt{tomasz.pisarewski@fide-soft.com}}
+
+\date{Draft of \today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+Software architecture exists to help people understand and change code. Coding agents now make a
+growing share of those changes. Two questions follow. Does a structure designed for human
+cognition help or hinder an agent? And does the agent keep that structure intact as it works? We
+report a preregistered controlled experiment (OSF \code{r5t3d}). We built an HL7 FHIR R4 REST
+service in Java~21 and Spring Boot~3.5 in three behaviorally equivalent variants: no explicit
+architecture (\NONE), layered (\LAY), and hexagonal, i.e.\ ports and adapters (\HEX). All three
+pass the same 79-test black-box suite. Two open-weights models, Laguna~S~2.1 and
+Qwen3-Coder-30B-A3B, run in the mini-swe-agent scaffold. Each implements the same 24 product
+tickets in a fixed order, every ticket on top of its own previous changes, in five independent
+runs per cell (30 trajectories, 720 attempts). Hidden acceptance tests measure success. Tokens
+measure cost. After every task we measure erosion, using an architecture-agnostic index and
+ArchUnit conformance. Success (H3): \RESULT{H3-abstract} (hexagonal minus none:
+\RESULT{H3-hex-none-pp} percentage points, Holm-adjusted $p=$ \RESULT{H3-hex-none-pholm}).
+Cost (H1): \RESULT{H1-abstract}. Erosion (H2): \RESULT{H2-abstract}. Conformance (H6):
+\RESULT{H6-abstract}. Capability interaction (H4): \RESULT{H4-abstract}. The
+whole experiment ran on a laptop with Docker and cost \RESULT{cost-total} in API fees (budget
+USD~30). We release all variants, tasks, hidden tests, harness, transcripts, and per-task
+snapshots.
+\end{abstract}
+
+\noindent\textbf{Keywords:} coding agents; software architecture; architecture erosion;
+hexagonal architecture; controlled experiment; preregistration; open science.
+
+% =====================================================================================
+\section{Introduction}\label{sec:intro}
+
+Software architecture is a tool for human cognition. Modules hide design decisions so that a
+person can change one part of a system without understanding the rest~\citep{parnas1972criteria}.
+Layers and ports separate concerns so that the developer knows where a change belongs and what it
+may touch~\citep{buschmann1996posa,fowler2002peaa,cockburn2005hexagonal}. These structures cost
+something: more files, more indirection, more mapping code. We pay that cost because it buys
+comprehension and controlled change for human maintainers.
+
+LLM-based coding agents now take on a growing share of maintenance and feature work. They read
+code through a shell, not through an IDE and a mental model built over months. Two things are
+unclear. First, does the indirection that helps humans help agents, or does it tax them? Our
+earlier exploratory study on small Python repositories found a tax: equivalent code with ports
+and adapters lowered single-task success, more so for weaker models, mainly because the logic to
+change sat in opaquely named adapter files away from the entry point~\citep{pisarewski2026indirection}.
+That study covered neither realistic project size, nor Java, nor sustained evolution. Second, do
+agents preserve an architecture while they evolve the code? Architecture erosion, the growing gap
+between intended and implemented architecture, is a classic problem of long-lived
+systems~\citep{perry1992foundations,lehman1980programs,desilva2012erosion,li2022erosionmapping}.
+Agents may speed it up. They optimize for local correctness, the ticket at hand and its tests,
+and may drift from global architectural intent~\citep{agenticentropy2026}. A recent benchmark has agents extend their own code over checkpoints and measures erosion at
+each step~\citep{slopcodebench2026}. None of these studies vary the architecture while holding
+behavior constant.
+
+We run that experiment. One FHIR R4 service exists in three behaviorally equivalent variants
+(\NONE, \LAY, \HEX) that pass the same black-box suite. An agent implements 24 product tickets in
+order, each on top of its own previous result, and we measure success, cost and erosion after
+every task. The design, hypotheses, analysis code and sample size were frozen and registered
+before any confirmatory run. We ask three research questions:
+
+\begin{itemize}[leftmargin=3.2em,itemsep=1pt]
+  \item[\textbf{RQ1}] \emph{Cost.} Does architecture change how much work an agent needs per
+    task? (H1; by task type, H5)
+  \item[\textbf{RQ2}] \emph{Success.} Does architecture change whether the agent completes the
+    task, and does that depend on model capability? (H3; H4)
+  \item[\textbf{RQ3}] \emph{Erosion.} Does an explicit architecture slow structural decay under
+    agent-driven evolution, and do agents keep to the architecture's own rules? (H2; H6)
+\end{itemize}
+
+\paragraph{Contributions.}
+\begin{enumerate}[itemsep=1pt]
+  \item \textbf{Controlled, equivalent variants.} Three architectures of one non-trivial
+    service (2.2--4.1\,kLOC), with an identical external contract, schema and dependency set,
+    admitted only after a mechanical equivalence gate. Building them in parallel exposed 13
+    specification ambiguities, which became binding clarifications.
+  \item \textbf{Cumulative evolution with erosion tracking.} Agents work on their own earlier
+    output across 24 tickets. Every task is a git snapshot, graded against all hidden tests so far
+    and measured with a pinned erosion pipeline (ArchUnit, CK, PMD/CPD, SpotBugs).
+  \item \textbf{Preregistration.} Hypotheses, tests, sample size and the analysis script were
+    frozen (git tag \code{prereg-v1}) and registered on OSF before data collection. This paper was
+    drafted before the results were known. Deviations are logged.
+  \item \textbf{Open, reproducible, cheap.} Open-weights models, an offline Docker sandbox and an
+    unmodified public scaffold (mini-swe-agent~2.4.6). The full experiment cost about
+    USD~0.04 per attempt. All materials, transcripts and snapshots are released.
+  \item \textbf{Lessons for low-budget agent experiments} (\S\ref{sec:lessons}): failure modes of
+    free and paid endpoints, scaffolds and graders that we hit and fixed before registration.
+\end{enumerate}
+
+% =====================================================================================
+\section{Related Work}\label{sec:related}
+
+\paragraph{Coding-agent benchmarks.} SWE-bench~\citep{jimenez2024swebench} established
+repository-level issue resolution with hidden FAIL\_TO\_PASS and PASS\_TO\_PASS tests. We follow
+that grading scheme. SWE-agent~\citep{yang2024sweagent} showed that the agent--computer interface
+matters. mini-swe-agent~\citep{minisweagent} reduces the scaffold to a bash-only loop and is the
+reference scaffold of the SWE-bench Bash Only leaderboard~\citep{swebenchbashonly}. We use it so
+that scaffold effects stay small and identical across models. Java issue-resolution benchmarks
+exist~\citep{zan2024swebenchjava,zan2025multiswebench}. Like most benchmarks they evaluate
+independent tasks on fixed snapshots of real repositories, so they cannot separate the effect of
+architecture from everything else that differs between repositories.
+
+\paragraph{Long-horizon evolution and degradation.} SWE-EVO~\citep{sweevo2025} poses
+long-horizon evolution tasks derived from release notes. SlopCodeBench~\citep{slopcodebench2026}
+is the closest design to ours: agents extend their own code over checkpoints, and erosion and
+verbosity are measured at every step. It does not manipulate architecture while holding behavior
+constant, and that manipulation is what this study adds. The notions of \emph{agentic
+entropy}~\citep{agenticentropy2026}, where agents optimize local correctness and drift from global
+architectural intent, and \emph{coherence debt} in repository-scale tasks~\citep{coherencedebt2026}
+give conceptual framings for H2 and H6.
+
+\paragraph{Code properties that affect agents.} A growing line of work holds the agent fixed and
+varies the code. Trivedi and Schmitt~\citep{trivedi2026cleanliness} build minimal pairs that
+differ in code cleanliness and measure success and token cost with hidden tests. They leave open
+whether such effects compound over long-horizon evolution, which our cumulative design addresses
+for architecture. Borg et al.~\citep{borg2026codehealth} relate file-level CodeHealth to
+LLM refactoring outcomes. Ustynov~\citep{ustynov2026beyond} revisits conventions written for human
+readers in light of agentic development and leaves architecture to future work. \emph{Theory of Code Space}~\citep{sapunov2026tocs}
+asks whether agents can build an architectural map of a code base. Our predecessor
+study~\citep{pisarewski2026indirection} asked whether indirection changes task success and traced
+the effect mainly to file naming. All of these work with single tasks or single snapshots.
+
+\paragraph{Architecture and agents.} Three recent works are closest in topic. \emph{Architecture as
+Capability Equalizer}~\citep{archequalizer2026} varies how an architecture is \emph{specified} to
+six models, including ArchUnit-style rules, and finds that structured specifications help weaker
+models most. It does not vary the architecture of the code. A pilot study~\citep{hexdebt2025} has
+three models build a hexagonal microservice and reports that, without automated architectural
+linting, structural debt accumulates faster with small models. It studies one style with no
+controlled alternative. In grey literature, Stoyanov~\citep{stoyanov2026hexagonal} compares a flat
+and a hexagonal version of one Java system on 9 + 6 tasks and reports that the hexagonal version
+took 37.8\% longer to reach acceptance. That comparison involves one system and one author and was
+not preregistered. Together these works motivate H1, H2 and H6 but do not test them under control.
+
+\paragraph{Architecture erosion.} Perry and Wolf~\citep{perry1992foundations} distinguish
+\emph{erosion}, which violates the architecture, from \emph{drift}, which is insensitivity to it.
+De Silva and Balasubramaniam~\citep{desilva2012erosion} survey methods to control erosion,
+including conformance checking against rules, which we implement with
+ArchUnit~\citep{archunit}. Li et al.\ map the erosion literature~\citep{li2022erosionmapping} and
+report practitioners' views of its causes and symptoms~\citep{li2021erosionpractitioners}. Common
+symptoms (dependency cycles, rising coupling, duplication, rule violations) are what our erosion
+index aggregates. We measure them with established metrics: CK~\citep{chidamber1994metrics,aniche2015ck},
+Martin's distance from the main sequence~\citep{martin2002agile}, PMD/CPD~\citep{pmd} and
+SpotBugs~\citep{spotbugs}. To our knowledge erosion research has so far studied human developers.
+Agents as the source of erosion are new.
+
+% =====================================================================================
+\section{Study Design}\label{sec:design}
+
+This section summarizes the frozen protocol (PREREGISTRATION.md at tag \code{prereg-v1}). Phase~1,
+reported here, covers the FHIR domain. A second domain (order management) is built with the same
+method and will be registered separately as Phase~2, where domain generality (H7) is tested.
+Figure~\ref{fig:pipeline} shows the data flow for one trajectory.
+
+\begin{figure}[t]\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners=2pt, align=center, font=\footnotesize, minimum height=1.05cm, inner sep=3pt},
+  arr/.style={-{Stealth[length=2mm]}, thick},
+  node distance=0.45cm and 0.5cm]
+\node[box, text width=2.25cm] (base) {Baseline variant\\ \NONE{} / \LAY{} / \HEX};
+\node[box, text width=3.1cm, right=of base] (agent) {Ticket $k$ $\rightarrow$ mini-swe-agent\\ offline sandbox, $\le$60 calls};
+\node[box, text width=2.0cm, right=of agent] (commit) {git commit\\ snapshot $k$};
+\node[box, text width=3.6cm, right=of commit] (grade) {Grading container\\ build, start, baseline suite\\ + hidden tests of tasks $1..k$};
+\node[box, text width=3.6cm, below=0.55cm of grade] (res) {\code{results.jsonl}: success,\\ regressions, tokens, calls, time};
+\node[box, text width=4.4cm, below=0.55cm of agent, xshift=0.4cm] (ero) {Erosion container (post hoc):\\ ArchUnit, CK, PMD/CPD, SpotBugs\\ $\rightarrow$ \code{erosion.jsonl}};
+\draw[arr] (base) -- (agent);
+\draw[arr] (agent) -- (commit);
+\draw[arr] (commit) -- (grade);
+\draw[arr] (grade) -- (res);
+\draw[arr] (commit.south) |- (ero.east);
+\draw[arr, dashed] (commit.north) -- ++(0,0.45) -| node[pos=0.25, above, font=\footnotesize] {next ticket $k{+}1$ on top of snapshot $k$} (agent.north);
+\end{tikzpicture}
+\caption{One trajectory. The agent never sees the hidden tests. Grading and erosion measurement run
+on the committed snapshot in separate offline containers.}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{Application and variants}\label{sec:variants}
+
+The application is a FHIR R4 REST facade~\citep{hl7fhirr4} over its own persistence. It covers
+five resource types (\code{Patient}, \code{Practitioner}, \code{Encounter}, \code{Observation},
+\code{Appointment}) with read, create, update and a defined subset of search parameters, resource
+versioning (\code{meta.versionId}, \code{ETag}) and \code{OperationOutcome} errors. Every variant
+uses Java~21, Spring Boot 3.5.16, Spring Data JPA, H2, Flyway and the HAPI FHIR \emph{structures
+and parser only} (\code{hapi-fhir-structures-r4} 8.12.1). HAPI server modules are excluded, because
+they impose their own architecture and would remove the manipulated variable. Seed data is
+synthetic (Synthea~\citep{walonoski2018synthea}).
+
+We chose Spring Boot 3.5 rather than 4.x on purpose. Boot~4 (November 2025) changed core APIs
+(Jackson~3, modularized starters) and is newer than much of the models' training data. It would
+add a framework-novelty confound unrelated to architecture.
+
+The variants differ only in code organization (ARCHITECTURES.md):
+\begin{itemize}[itemsep=1pt]
+  \item \NONE: idiomatic ``tutorial-style'' Spring. Controllers parse, validate, apply rules,
+    map FHIR resources and call Spring Data repositories directly. Packages \code{controller},
+    \code{entity}, \code{repository}, \code{util}. Realistic, not deliberately bad.
+  \item \LAY: package-by-layer \code{web} $\rightarrow$ \code{service} $\rightarrow$
+    \code{repository} (+ \code{entity}). HAPI types are confined to \code{web}.
+  \item \HEX: ports and adapters after Hombergs~\citep{hombergs2023clean} (reference
+    implementation \emph{buckpal}). A pure-Java \code{domain} with its own clinical model,
+    \code{application} with inbound/outbound ports and use-case services, and
+    \code{adapter.in.web}, \code{adapter.out.persistence} and \code{config}. FHIR mapping lives
+    only in the web adapter.
+\end{itemize}
+The FHIR domain makes the placement of the standard model itself an architectural decision. In
+\NONE{} HAPI resource classes run through the whole code base. In \LAY{} they stop at the service
+boundary. In \HEX{} the domain has its own model and the FHIR mapping sits in one adapter, which is
+exactly the kind of indirection that was costly in the predecessor study.
+
+\paragraph{Equivalence gate.} A variant was admitted only if (i)~it passes the shared black-box
+acceptance suite (79 tests over HTTP against the running jar, with FHIR R4 validation of every
+response), (ii)~its Flyway schema is byte-identical and its dependency set exactly matches the
+other variants (ArchUnit in test scope is the only extra), (iii)~it has zero violations of its own
+ArchUnit rules, and (iv)~its size profile is published (Table~\ref{tab:size}). The size
+differences are intrinsic to the styles (ports, mapping, a separate domain model). We report them
+and do not equalize them. Each variant also contains an \code{AGENTS.md} with the same build/test
+commands and a neutral, package-level layout description of equal length ($\pm$10\%) and no task
+hints.
+
+\begin{table}[t]\centering
+\caption{Size profile of the three baselines at the equivalence gate (2026-10-07). All pass the
+same 79-test acceptance suite.}
+\label{tab:size}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Variant & Main LOC & \code{.java} files & Packages & Own tests (incl.\ ArchUnit) & \code{AGENTS.md} words\\
+\midrule
+\NONE & 2243 & 27 & 4 & 8 & 173\\
+\LAY & 2677 & 55 & 5 & 14 & 183\\
+\HEX & 4064 & 104 & 12 & 16 & 185\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Construction.} The specification (\code{fhir/SPEC.md}) is the single source of truth
+for behavior. Three AI agents built the three variants in parallel from it, and the author
+reviewed them. Whenever two builders interpreted the specification differently, the ambiguity
+became a binding clarification with its own acceptance test, and all variants were re-gated. This
+produced 13 clarifications (C1--C13), for example the order of checks on \code{PUT} (parse error
+before id mismatch before unknown id before business rules), the status for unsupported HTTP
+methods on known types (405), and the handling of codes that are valid in FHIR R4 but outside the
+supported subset. The gate caught four real behavioral divergences (C1, C7, C9, C11). We see this
+as a side result: parallel independent implementation is an effective way to find specification
+gaps.
+
+\subsection{Tasks}\label{sec:tasks}
+
+There are 24 tasks, written as product tickets. They describe externally observable behavior and
+never name files, classes, packages or layers, so all three variants receive identical text
+(1861 words in total). HTTP contracts and configuration property names are part of the external
+interface and may be named. Every ticket ends with acceptance criteria that the agent can see. The
+tasks fall into four strata of six, interleaved in a fixed order that mimics product evolution
+(Table~\ref{tab:tasks}).
+
+\begin{table}[t]\centering
+\caption{Task strata. Units = architectural units a change is expected to touch.}
+\label{tab:tasks}
+\small
+\begin{tabularx}{\textwidth}{@{}lp{2.2cm}Xl@{}}
+\toprule
+Stratum & Tasks & Example & Units\\
+\midrule
+D domain rule & T01 T05 T09 T13 T17 T21 & T01: body-weight Observations must use UCUM \code{kg} or \code{g}, else 422 \code{business-rule} & 1\\
+F feature & T02 T06 T10 T14 T18 T22 & T02: \code{Observation?date=} search with prefixes; listed in the CapabilityStatement & 3+\\
+C cross-cutting & T03 T07 T11 T15 T19 T23 & T03: optimistic locking with \code{If-Match} on every \code{PUT}; 412 on conflict & many\\
+I integration & T04 T08 T12 T16 T20 T24 & T04: POST critical glucose Observations to a configured URL; failure must not fail the create & new adapter\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Hidden tests.} Each task has hidden black-box acceptance tests (141 test methods in total,
+3--8 per task), the same file for all variants. They run over HTTP against the running application.
+FAIL\_TO\_PASS tests fail on every baseline. Guard tests (PASS\_TO\_PASS) pass on the baseline and stop
+over-reaching solutions. For integration tasks the grader starts the application with the relevant
+property pointing to a mock server controlled by the test. \code{harness/validate\_tasks.py}
+checked on all three baselines that each task's FAIL\_TO\_PASS tests fail and the baseline suite
+passes.
+\TODO{attach the 24-task validation log; data/validate\_phase1.log covers 12 tasks only. No
+reference solutions are in the repository; do not claim them.}
+
+\paragraph{Dependencies and superseded tests.} Tasks were designed to be independent: 22 have no
+dependency, and two have a soft one that their hidden tests do not need (T19 on T03, T20 on T06).
+Some tickets legitimately change baseline behavior. For example, T18 makes \code{\_count} a valid
+search parameter, and several tasks extend the CapabilityStatement that a baseline test checks
+exactly. Nine of the 24 tasks therefore declare which baseline tests they \emph{supersede}. From
+that task on, those tests are no longer counted as regressions (\S\ref{sec:harness}).
+
+\subsection{Agent and models}\label{sec:agent}
+
+\paragraph{Scaffold.} mini-swe-agent 2.4.6~\citep{minisweagent} with its \code{DefaultAgent}
+and a single bash tool through native tool calling. The prompt is identical in every condition and
+neutral about architecture. It asks the agent to read \code{AGENTS.md}, find the relevant code,
+make the change, build and test, and submit. The agent may run the visible tests (\code{mvn test})
+and start the application, and it never sees the hidden tests. The budget is 60 model calls per task.
+\emph{Success} means solved within that budget: the hidden tests pass on the committed state,
+whatever the stop reason. Each shell command times out after 600\,s. There is no wall-clock limit,
+because provider latency must never become an agent failure.
+
+\paragraph{Models.} Both arms use open-weights models, served through OpenRouter at temperature
+0.2 with at most 16,384 output tokens per call:
+\begin{itemize}[itemsep=1pt]
+  \item \emph{strong}: Poolside Laguna~S~2.1~\citep{poolside2026laguna} (118B total / 8B active
+    coding mixture-of-experts, OpenMDW-1.1 weights), run \emph{without} extended thinking. With
+    thinking on, the serving provider ignored both the reasoning budget and \code{effort: low}. Calls
+    ran to the output cap without a tool call, and in a shakedown 6 of 17 attempts ended in
+    repeated format errors. With thinking off there were no format errors in 120 calls. This
+    decision was made on reliability alone, before registration.
+  \item \emph{weak}: Qwen3-Coder-30B-A3B-Instruct~\citep{qwen3report}, the model used in the
+    cloud runs of the predecessor study. A preregistered floor rule would have replaced it with
+    Qwen3-Coder-Next if it had solved fewer than 30\% of pilot attempts in \NONE. The rule was not
+    triggered.
+\end{itemize}
+Open weights matter for reproducibility. Hosted endpoints change or disappear (\S\ref{sec:lessons}),
+but anyone can re-run the study with the same weights. The serving provider is logged per call. In
+the pilot, all strong-arm calls were served by Poolside and all weak-arm calls by SiliconFlow.
+
+\subsection{Harness}\label{sec:harness}
+
+\paragraph{Sandbox.} Each attempt runs in a fresh container of a pre-warmed image
+(\code{archagents/sandbox:1}, Temurin JDK~21, Maven with every dependency cached) with
+\code{--network none}, 2 CPUs and 3\,GB RAM. Maven runs offline. The trajectory's repository is
+mounted as the workspace. Every command is wrapped in \code{timeout -k 5 590} inside the container,
+so a hung build or a forgotten server is killed before the scaffold gives up on the command.
+
+\paragraph{Grading.} After the agent stops, the harness commits the workspace. The grader exports the
+committed tree (\code{git archive}), builds it in a separate offline container, starts the jar,
+and runs the baseline acceptance suite plus the hidden tests of the current and all earlier tasks.
+App configuration accumulates, so earlier integration tasks keep being checked against their mock
+servers. A task is a \emph{success} if the snapshot builds, the application starts, and every
+hidden test of the current task passes. A test is a \emph{regression} if it passed at the previous
+grading and fails now. Tests of earlier tasks that the agent never solved are recorded as
+\emph{still failing}, not as regressions. Superseded baseline tests are excluded from both.
+
+\paragraph{Infrastructure failures.} Provider errors, container crashes and harness exceptions are
+not agent failures. Only four exit states count as agent outcomes: submitted, step limit reached,
+time exceeded, and repeated format errors. Any other exit rolls the workspace back to the last
+commit, and the attempt is retried later, up to three times. After that it is recorded as missing.
+A trajectory with more than 20\% infrastructure failures is re-run from scratch. No data are
+excluded because of their outcome values.
+
+\paragraph{Scheduling.} Task order is fixed. Execution is interleaved: for each task position, the
+harness visits the trajectories in a seeded random order. Provider drift, throttling or a withdrawn
+model therefore hits all architecture arms equally. As a logged deviation (\S\ref{sec:prereg}),
+Phase~1 runs one such interleaving worker per run, two to three in parallel. Each worker contains
+all six architecture $\times$ model trajectories of its run.
+
+\subsection{Measures}\label{sec:measures}
+
+\paragraph{Success and cost (per attempt).} Success (binary), regression flags, stop reason, total
+tokens (prompt + completion, including cached prompt tokens), model calls, wall time, files
+changed, and added/deleted lines. Total tokens is the primary cost measure. We also report a
+recomputed USD cost that prices cached tokens separately.\footnote{Prices per million tokens at
+registration (input / output / cache read): strong 0.09 / 0.18 / 0.009, weak 0.07 / 0.28 / 0.07 USD.}
+
+\paragraph{Erosion (per committed snapshot).} \code{harness/erosion.py} measures every snapshot
+post hoc in a second pinned image (\code{archagents/sandbox:2}). The image adds ArchUnit 1.5.1, CK
+0.7.0, PMD/CPD 7.28.0 (\code{quickstart} rule set) and SpotBugs 4.10.4 (default effort, medium
+threshold), all checked against published SHA-256 digests. Because a snapshot is deterministic,
+post-hoc measurement gives the same values as measuring inside the loop. CK 0.7.0 cannot parse
+Java records. The tool therefore parses at JLS~21 and runs CK on a copy in which each record is
+rewritten as a final class with the same fields. With this change, CK reports no errors on any
+baseline. The index has seven components (Table~\ref{tab:erosion}).
+
+\begin{table}[t]\centering
+\caption{Components of the erosion index (PREREGISTRATION \S4.3).}
+\label{tab:erosion}
+\small
+\begin{tabular}{@{}rll@{}}
+\toprule
+$m$ & Component & Source\\
+\midrule
+1 & package-level dependency cycles in \code{org.archagents.fhir..} & ArchUnit slices\\
+2, 3 & mean and max coupling between objects (CBO) & CK\\
+4 & mean lack of cohesion (LCOM) & CK\\
+5 & mean normalized distance from the main sequence $D=|A+I-1|$ & ArchUnit metrics\\
+6 & static-analysis warnings (PMD violations + SpotBugs bugs) & PMD, SpotBugs\\
+7 & duplicated lines (clones $\ge$100 tokens) & CPD\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For trajectory $t$, task index $k$ (0 = baseline) and component $m$, let $x_{t,k,m}$ be the metric
+value on the committed snapshot. Then
+\begin{align}
+d_{t,k,m} &= x_{t,k,m} - x_{t,0,m}, &
+s_m &= \operatorname{SD}_t\!\left(d_{t,K_t,m}\right), &
+E_{t,k} &= \frac{1}{|M^\ast|}\sum_{m\in M^\ast}\frac{d_{t,k,m}}{s_m},
+\end{align}
+where $K_t$ is the last compiling snapshot of $t$, the standard deviation pools all 30 trajectories
+across arms and models, and $M^\ast=\{m : s_m>0\}$. A component with zero pooled spread is dropped
+and reported. There is no centering, so $E=0$ still means ``no change since baseline'' (centering
+would add a constant per component and not change any slope). The H2 outcome is the OLS slope
+$\beta_t$ of $E_{t,k}$ over $k$. Snapshots that do not compile have no metric values. They are left
+out of the slope fits, and their number per arm is reported.
+
+\paragraph{Conformance (H6).} For \LAY{} and \HEX{}, the number of violations of the variant's own
+layer or hexagon rules (ARCHITECTURES.md). They are evaluated by a frozen copy of the baseline rules
+in the measurement tool, never by the copy in the snapshot, which the agent may have edited. The
+general checks (field injection, HAPI server modules) and the cycle rule are not counted, since
+cycles enter the erosion index. A rule whose target package was deleted counts as one violation.
+The H6 outcome is the OLS slope of this count over $k$.
+
+\subsection{Hypotheses and analysis}\label{sec:analysis}
+
+Table~\ref{tab:hyp} lists the hypotheses and their tests. All primary tests are permutation tests
+on the unit of inference~\citep{good2005permutation}, implemented in \code{analysis/analyze.py},
+which was frozen with the registration and dry-run on the pilot data. Everything is seeded
+(20261012).
+
+\begin{table}[t]\centering
+\caption{Preregistered hypotheses for Phase 1 and their primary tests. Contrasts: \LAY$-$\NONE,
+\HEX$-$\NONE, \HEX$-$\LAY, Holm-corrected within each hypothesis. H7 (domain generality) needs
+Phase~2.}
+\label{tab:hyp}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{4.6cm}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+& Prediction & Sides & Primary test\\
+\midrule
+H1 & cost: \NONE{} $<$ \LAY{} $<$ \HEX{} (total tokens) & directional & sign-flip test on per-task differences of mean $\log$ tokens (24 tasks)\\
+H2 & erosion slope lower in \LAY{} and \HEX{} than in \NONE{} & directional & label permutation of per-trajectory index slopes, stratified by model\\
+H3 & success rate differs between architectures & two-sided & sign-flip test on per-task success-rate differences\\
+H4 & \HEX$-$\NONE{} success gap larger for the weak model & directional & sign-flip test on per-task interaction contrasts\\
+H5 & \HEX{} cost penalty largest for multi-unit strata (F, C, I), smallest for D & directional & per-stratum H1 contrasts; permutation of the (F,C,I) vs.\ D contrast\\
+H6 & conformance violations accumulate (slope $>0$); \LAY{} vs.\ \HEX{} two-sided & mixed & as H2 on violation-count slopes\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Task-level tests (H1, H3, H4, H5).} The task is the unit of inference. For each task and
+arm we pool all attempts over runs and models and compute the success rate (H3) or the mean
+$\log(\text{total tokens}+1)$ (H1). For each contrast, the 24 per-task differences enter a two-sided
+sign-flip permutation test on their mean, with 100,000 random sign patterns including the observed
+one. When there are 16 or fewer tasks, as in the per-stratum H5 contrasts, all patterns are
+enumerated. H4 applies the same test to per-task interaction contrasts (weak-model effect minus
+strong-model effect, in percentage points). H5 permutes stratum labels to test whether the
+\HEX$-$\NONE{} cost difference is larger in strata F, C and I than in D. Secondary H1 analyses
+repeat the test on successful attempts only, model calls, files changed, wall time and recomputed
+USD.
+
+\paragraph{Trajectory-level tests (H2, H6).} We fit one OLS slope per trajectory and compare arms with
+a two-sided permutation test that shuffles architecture labels within model strata (10 trajectories
+per arm, 10,000 relabelings).
+
+\paragraph{Inference criteria.} $\alpha=0.05$. The three architecture contrasts within each
+hypothesis are Holm-corrected~\citep{holm1979simple}. A directional hypothesis counts as supported
+only if the corrected test is significant \emph{and} the effect has the predicted sign. All effects
+come with 95\% percentile CIs from a cluster bootstrap over tasks with 10,000
+resamples~\citep{efron1993bootstrap}. Secondary mixed models estimate adjusted effects:
+a logistic GLMM \code{success \textasciitilde{} architecture * model + (1|task) + (1|trajectory)},
+LMMs with the same structure for $\log$ tokens, and \code{erosion\_index \textasciitilde{}
+architecture * task\_index + (task\_index|trajectory)}. A sensitivity analysis adds
+\code{dependency\_failed} to the success model. Where models and primary tests disagree, both are
+reported. \TODO{GLMM/LMM and the dependency\_failed sensitivity analysis are not implemented in
+analyze.py; implement exactly as preregistered and label any choices not fixed there.}
+
+\paragraph{Sample size and sensitivity.} The design is 3 architectures $\times$ 2 models $\times$ 5
+runs = 30 trajectories of 24 tasks, i.e.\ 720 attempts. The size was set by resources: the study is
+self-funded with an API budget of about USD~30. A simulation (\code{analysis/power\_sim.py};
+logistic model with task and trajectory random effects calibrated to the pilot) gave the primary
+H3 test with 24 tasks $\times$ 5 runs a power of 0.93 at $\alpha=0.05$ for a 15 percentage-point
+difference, and 0.86 at the Holm-adjusted $\alpha=0.0167$. For 10 points the power is 0.67 and 0.53.
+Smaller differences are reported as inconclusive, not absent. The simulation also showed that
+adding tasks raises power more than adding runs, because the task is the unit of inference. This is
+why we chose 24 tasks $\times$ 5 runs over 12 $\times$ 10 at equal cost.
+\TODO{the committed power\_sim.py has N\_TASKS = 12; archive the 24-task run that produced these
+numbers.} A preregistered, outcome-blind cost rule would drop run R5 if the forecast spend after
+R1 exceeded USD~30. Outcome: \RESULT{cost-rule-outcome}.
+
+\subsection{Preregistration and open science}\label{sec:prereg}
+
+Preregistration fixes the confirmatory analysis before the data exist and so separates it from exploration~\citep{nosek2018preregistration}. The open-ended idea was registered on OSF on 2026-10-05 (\url{https://osf.io/w467e}). The full
+protocol was registered on 2026-10-13 at 09:25 UTC with the OSF Preregistration template
+(\url{https://osf.io/r5t3d}), under embargo until 2027-07-31. The registered materials are git tag
+\code{prereg-v1}, commit \code{3d347cb}. Before registration only harness-debugging data existed:
+three pilot tasks P1--P3 in all six cells (18 attempts) and one shakedown trajectory over T01--T24
+(\NONE, strong model). Both are excluded from every analysis. The models, settings, sandbox
+images, tasks, hidden tests and analysis script did not change after the freeze. One deviation is
+logged (DEVIATIONS.md): execution runs in two to three parallel workers, one per run, instead of a
+single queue over all 30 trajectories, because a sequential queue would take about 70 hours. Every
+worker interleaves all arms, so the protection against drift is kept. Further deviations:
+\RESULT{deviations-list}.
+
+% =====================================================================================
+\section{Results}\label{sec:results}
+
+\TODO{Fill from data/phase1/analysis.json after data collection ends. Report every preregistered
+test, including non-significant ones.}
+
+\subsection{Data collection}\label{sec:res-collection}
+
+Data were collected from \RESULT{collection-start} to \RESULT{collection-end}
+(Table~\ref{tab:collection}).
+
+\begin{table}[t]\centering
+\caption{Data collection summary (top) and task success rate by architecture and model, pooled
+over runs and tasks (bottom).}
+\label{tab:collection}\label{tab:success}
+\footnotesize
+\begin{tabular}[t]{@{}lr@{}}
+\toprule
+Runs completed (cost rule) & \RESULT{runs-final}\\
+Trajectories / attempts & \RESULT{N-trajectories} / \RESULT{N-attempts}\\
+Missing after 3 infra retries & \RESULT{N-missing}\\
+Infrastructure retries & \RESULT{N-infra-retries}\\
+Trajectories re-run ($>$20\% infra) & \RESULT{N-traj-rerun}\\
+Submitted / step limit / format err. & \RESULT{stop-reasons}\\
+Non-compiling snapshots N/L/H & \RESULT{noncompiling-by-arm}\\
+Providers (strong / weak) & \RESULT{providers}\\
+Total cost; per attempt & \RESULT{cost-total}; \RESULT{cost-per-attempt}\\
+\bottomrule
+\end{tabular}\\[6pt]
+\begin{tabular}[t]{@{}lccc@{}}
+\toprule
+ & \NONE & \LAY & \HEX\\
+\midrule
+strong & \RESULT{succ-none-strong} & \RESULT{succ-lay-strong} & \RESULT{succ-hex-strong}\\
+weak & \RESULT{succ-none-weak} & \RESULT{succ-lay-weak} & \RESULT{succ-hex-weak}\\
+pooled & \RESULT{succ-none} & \RESULT{succ-lay} & \RESULT{succ-hex}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]\centering
+\caption{Task-level primary tests (24 tasks): mean per-task difference, 95\% cluster bootstrap CI,
+sign-flip $p$, Holm-adjusted $p$. H3 in percentage points of success; H1 in $\log$ total tokens
+(positive = first arm more expensive); H4 is the interaction contrast weak-model effect minus
+strong-model effect in pp (secondary, no Holm correction; prediction: negative for \HEX$-$\NONE).}
+\label{tab:task-tests}\label{tab:h3}\label{tab:h1}\label{tab:h4}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Contrast & Estimate & 95\% CI & $p$ & $p_\text{Holm}$\\
+\midrule
+\multicolumn{5}{@{}l}{\emph{H3 success (pp), two-sided}}\\
+\crow{H3}{lay-none}{\LAY$-$\NONE}{pp}
+\crow{H3}{hex-none}{\HEX$-$\NONE}{pp}
+\crow{H3}{hex-lay}{\HEX$-$\LAY}{pp}
+\midrule
+\multicolumn{5}{@{}l}{\emph{H1 cost ($\Delta\log$ tokens, all attempts), directional}}\\
+\crow{H1}{lay-none}{\LAY$-$\NONE}{est}
+\crow{H1}{hex-none}{\HEX$-$\NONE}{est}
+\crow{H1}{hex-lay}{\HEX$-$\LAY}{est}
+\midrule
+\multicolumn{5}{@{}l}{\emph{H4 capability interaction (pp), directional}}\\
+\LAY$-$\NONE & \RESULT{H4-lay-none-pp} & \RESULT{H4-lay-none-ci} & \RESULT{H4-lay-none-p} & n/a\\
+\HEX$-$\NONE & \RESULT{H4-hex-none-pp} & \RESULT{H4-hex-none-ci} & \RESULT{H4-hex-none-p} & n/a\\
+\HEX$-$\LAY & \RESULT{H4-hex-lay-pp} & \RESULT{H4-hex-lay-ci} & \RESULT{H4-hex-lay-p} & n/a\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{H3: Success}\label{sec:res-h3}
+
+Table~\ref{tab:success} gives success rates per cell and Table~\ref{tab:task-tests} the primary
+test. H3 is \RESULT{H3-verdict}. The GLMM odds ratio for \HEX{} vs.\ \NONE{} is
+\RESULT{H3-glmm-hex-none} (profile CI). Adding \code{dependency\_failed}
+\RESULT{H3-depfailed-sensitivity}. Figure~\ref{fig:success-cost}a shows success per task.
+
+\begin{figure}[t]\centering
+\begin{tabular}{@{}cc@{}}
+\maybefig{figures/success_by_task.pdf}{0.46\textwidth} &
+\maybefig{figures/cost_by_arm.pdf}{0.46\textwidth}\\
+\small (a) success per task and architecture, by model & \small (b) total tokens per attempt (log scale)
+\end{tabular}
+\caption{Success and cost by architecture. Placeholders until unblinding.}
+\label{fig:success-cost}
+\end{figure}
+
+\subsection{H1: Cost}\label{sec:res-h1}
+
+H1 is \RESULT{H1-verdict} (Table~\ref{tab:task-tests}, Figure~\ref{fig:success-cost}b). The share
+of attempts that hit the 60-call budget was \RESULT{budget-hit-rate-by-arm} (\NONE{} / \LAY{} /
+\HEX), which bounds how far cost is censored (\S\ref{sec:threats}). The LMM estimate for \HEX{}
+vs.\ \NONE{} is \RESULT{H1-lmm-hex-none}. Secondary measures are in Table~\ref{tab:h1sec}.
+
+\begin{table}[t]\centering
+\caption{H1 secondary cost measures and H5 (cost by stratum). Cells: mean per-task difference
+[95\% CI], $p$. H5 strata have six tasks each (exact sign-flip test; smallest attainable two-sided
+$p=0.031$).}
+\label{tab:h1sec}\label{tab:h5}
+\footnotesize
+\begin{tabular}{@{}llll@{}}
+\toprule
+\multicolumn{4}{@{}l}{\emph{H1 secondary measures (Holm-adjusted $p$)}}\\
+Measure & \LAY$-$\NONE & \HEX$-$\NONE & \HEX$-$\LAY\\
+\midrule
+$\log$ tokens, successful attempts & \RESULT{H1sec-succtok-lay-none} & \RESULT{H1sec-succtok-hex-none} & \RESULT{H1sec-succtok-hex-lay}\\
+model calls & \RESULT{H1sec-calls-lay-none} & \RESULT{H1sec-calls-hex-none} & \RESULT{H1sec-calls-hex-lay}\\
+files modified & \RESULT{H1sec-files-lay-none} & \RESULT{H1sec-files-hex-none} & \RESULT{H1sec-files-hex-lay}\\
+wall time (s) & \RESULT{H1sec-wall-lay-none} & \RESULT{H1sec-wall-hex-none} & \RESULT{H1sec-wall-hex-lay}\\
+recomputed USD & \RESULT{H1sec-usd-lay-none} & \RESULT{H1sec-usd-hex-none} & \RESULT{H1sec-usd-hex-lay}\\
+\midrule
+\multicolumn{4}{@{}l}{\emph{H5: \HEX$-$\NONE{} $\Delta\log$ tokens by stratum}}\\
+Stratum & Estimate & 95\% CI & $p$\\
+\midrule
+D domain rule & \RESULT{H5-D-est} & \RESULT{H5-D-ci} & \RESULT{H5-D-p}\\
+F feature & \RESULT{H5-F-est} & \RESULT{H5-F-ci} & \RESULT{H5-F-p}\\
+C cross-cutting & \RESULT{H5-C-est} & \RESULT{H5-C-ci} & \RESULT{H5-C-p}\\
+I integration & \RESULT{H5-I-est} & \RESULT{H5-I-ci} & \RESULT{H5-I-p}\\
+(F, C, I) $-$ D & \RESULT{H5-multi-minus-D} & & \RESULT{H5-multi-minus-D-p}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{H5: Cost by task stratum}\label{sec:res-h5}
+
+H5 is \RESULT{H5-verdict} (Table~\ref{tab:h5}).
+
+\subsection{H4: Capability interaction}\label{sec:res-h4}
+
+H4 is \RESULT{H4-verdict} (Table~\ref{tab:task-tests}).
+
+\subsection{H2: Erosion}\label{sec:res-h2}
+
+The index used the components \RESULT{H2-metrics-used}. Components dropped for zero pooled spread:
+\RESULT{H2-metrics-dropped}. Table~\ref{tab:traj-tests} compares slopes, and
+Figure~\ref{fig:erosion}a shows the index over task position. H2 is \RESULT{H2-verdict}.
+Per-component slopes are given in the supplementary material (\RESULT{H2-component-table}). LMM architecture $\times$ task-index
+interaction: \RESULT{H2-lmm-interaction}.
+
+\begin{table}[t]\centering
+\caption{Trajectory-level tests: mean per-trajectory OLS slope per task for each arm of the
+contrast, and label-permutation tests stratified by model (10 vs.\ 10 trajectories). H2: erosion
+index. H6: own-architecture conformance violations.}
+\label{tab:traj-tests}\label{tab:h2}
+\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+Contrast & slope (first arm) & slope (second arm) & $p$ & $p_\text{Holm}$\\
+\midrule
+\multicolumn{5}{@{}l}{\emph{H2 erosion index, directional}}\\
+\LAY$-$\NONE & \RESULT{H2-lay-none-a} & \RESULT{H2-lay-none-b} & \RESULT{H2-lay-none-p} & \RESULT{H2-lay-none-pholm}\\
+\HEX$-$\NONE & \RESULT{H2-hex-none-a} & \RESULT{H2-hex-none-b} & \RESULT{H2-hex-none-p} & \RESULT{H2-hex-none-pholm}\\
+\HEX$-$\LAY & \RESULT{H2-hex-lay-a} & \RESULT{H2-hex-lay-b} & \RESULT{H2-hex-lay-p} & \RESULT{H2-hex-lay-pholm}\\
+\midrule
+\multicolumn{5}{@{}l}{\emph{H6 conformance violations, two-sided}}\\
+\HEX$-$\LAY & \RESULT{H6-hex-slope} & \RESULT{H6-lay-slope} & \RESULT{H6-hex-lay-p} & n/a\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]\centering
+\begin{tabular}{@{}cc@{}}
+\maybefig{figures/erosion_index.pdf}{0.46\textwidth} &
+\maybefig{figures/conformance.pdf}{0.46\textwidth}\\
+\small (a) erosion index $E_{t,k}$, mean and 95\% band & \small (b) own-architecture violations (\LAY, \HEX)
+\end{tabular}
+\caption{Erosion and conformance over task position, per architecture and model. Placeholders
+until unblinding.}
+\label{fig:erosion}\label{fig:conformance}
+\end{figure}
+
+\subsection{H6: Conformance}\label{sec:res-h6}
+
+Own-architecture violations changed by \RESULT{H6-lay-slope} per task in \LAY{} and
+\RESULT{H6-hex-slope} in \HEX{} (difference \RESULT{H6-hex-lay-diff}, $p=$
+\RESULT{H6-hex-lay-p}; Figure~\ref{fig:erosion}b). H6 is \RESULT{H6-verdict}. The rules violated
+most often were \RESULT{H6-top-rules}.
+\TODO{analyze.py tests only the HEX-vs-LAY slope difference for H6; add the preregistered
+one-sample test of slope $>0$ per arm, labeled as such.}
+
+\subsection{Exploratory analyses}\label{sec:res-explore}
+
+These analyses were preregistered as exploratory. \emph{Regressions:}
+\RESULT{regression-rate-by-arm} of graded attempts broke at least one previously passing test.
+\emph{Localization:} \RESULT{localization-summary} (files read before the first edit vs.\ files
+where the change landed). \emph{Qualitative coding} of a stratified sample of failed attempts:
+\RESULT{qualitative-summary}.
+
+% =====================================================================================
+\section{Discussion}\label{sec:discussion}
+
+\TODO{Write after unblinding. Keep to what the preregistered tests support. The skeleton below
+lists what each outcome pattern would need to address. No claims are made here.}
+
+\paragraph{If architecture protects (lower erosion slope in \LAY/\HEX, success not lower).}
+\begin{itemize}[itemsep=1pt]
+  \item Which erosion components carry the effect: cycles and coupling, or warnings and
+    duplication? The baselines differ in size and structure, so a difference in components that
+    scale with code size needs care.
+  \item Is the protection bought with cost (H1)? Report the price per task and per point of
+    erosion avoided.
+  \item Did conformance hold (H6 slope near zero), or did agents keep the metrics flat while
+    breaking layer rules?
+  \item Relation to \citep{archequalizer2026,hexdebt2025}: does the code's structure act as an
+    implicit specification?
+\end{itemize}
+
+\paragraph{If the agent breaks the architecture (H6 slope $>0$, H2 not supported).}
+\begin{itemize}[itemsep=1pt]
+  \item Which rules break first (e.g.\ HAPI types leaking into \code{domain}/\code{service},
+    adapters calling services directly)? Link to the qualitative coding.
+  \item Is the structural cost of \HEX{} still paid (H1) while its benefits erode? That is the
+    worst case for practice.
+  \item Interaction with capability (H4) and stratum (H5): do cross-cutting and integration tasks
+    drive the violations?
+  \item Implications for guardrails (enforced ArchUnit rules, instructions). This motivates
+    Study~2.
+\end{itemize}
+
+\paragraph{If results are mixed or inconclusive.}
+\begin{itemize}[itemsep=1pt]
+  \item Use the sensitivity analysis: effects below about 10--15 pp are outside what this
+    design can detect.
+  \item Compare with the predecessor study's single-task tax, and say whether cumulative,
+    larger-scale work changes the picture.
+\end{itemize}
+
+% =====================================================================================
+\section{Threats to Validity}\label{sec:threats}
+
+We follow the usual classification~\citep{wohlin2012experimentation}. The first items were stated
+in the preregistration (\S7.1). The rest were identified while running the study.
+
+\paragraph{Construct validity.}
+\emph{Size is part of the treatment.} \HEX{} has 1.81$\times$ the LOC and 3.9$\times$ the files of
+\NONE. We report the profile and do not equalize it, so effects of architecture cannot be
+separated from the code volume the style implies. \emph{Erosion index.} The index aggregates
+established metrics with equal weight. Some components, such as distance from the main sequence,
+depend on package structure and may behave differently by style. We therefore report every
+component separately. \emph{Conformance} exists only for \LAY{} and \HEX. \emph{Cost} includes
+cached prompt tokens, which are cheap in money but still measure how much context the agent
+processes. We report recomputed USD as a secondary measure. \emph{Step-limit censoring.} Cost is
+right-censored at 60 calls. In the shakedown the strong model used the full budget in 18 of 24
+tasks. Censoring lowers the power of H1 and compresses differences between arms. It does not bias
+the permutation test under the null. The secondary analysis on successful attempts is only
+partly a remedy, because success is itself an outcome. \emph{Excluded snapshots.} Non-compiling
+snapshots are left out of the slope fits. If arms differ in compile rates, slopes describe
+different subsets. We report the counts per arm.
+
+\paragraph{Internal validity.}
+\emph{Construction bias.} One author, assisted by AI agents, built all variants and tasks, and no
+independent human review took place. Mitigations: a public reference style, the mechanical
+equivalence gate (79 black-box tests, identical schema and dependencies), frozen ArchUnit rules,
+published size profiles and full release of all materials. AI-built variants may also be closer
+to what models find natural than human-written code would be. \emph{Task authoring.} Tickets are
+behavior-only and graded by identical black-box tests, but nobody else reviewed them.
+\emph{Provider drift.} Hosted models can change silently, and providers can re-route requests. We
+pinned model IDs, interleaved all arms in every worker, and logged the provider per call. Drift
+during the collection window affects all arms equally but could still interact with
+architecture. \emph{Dependencies between tasks.} A failed task can make later tasks harder in that
+trajectory. We report the preregistered \code{dependency\_failed} sensitivity analysis.
+
+\paragraph{External validity.}
+\emph{Single domain in Phase 1.} Results come from one application. FHIR is a public standard that
+models have probably seen often, and its external model makes the placement of mapping code
+especially salient. Phase~2 (order management) tests generality (H7). We claim nothing about other
+languages, frameworks or much larger systems. \emph{Model choice.} Two open-weights models in one
+scaffold, chosen partly for cost, with the strong model run without extended thinking.
+Frontier proprietary agents with richer tools may behave differently, and with two models H4 is a
+contrast between two points, not a capability curve. \emph{Scaffold.} A bash-only loop with a
+60-call budget is deliberately minimal. Products with planning, retrieval or self-review steps
+may close or widen any gap.
+
+\paragraph{Conclusion validity.} 24 tasks give adequate power only for differences of about
+15 pp or more (\S\ref{sec:analysis}). H5 per-stratum tests have six tasks each and are
+descriptive. Contamination is limited by keeping all materials private until data collection
+ends and by running without network access. The materials will become public afterwards.
+
+% =====================================================================================
+\section{Lessons for Running Agent Experiments on a Shoestring}\label{sec:lessons}
+
+The study ran on one laptop with Docker and a budget of USD~30. Most of the engineering effort
+went into problems that a well-funded lab may never see but that can silently bias a low-budget
+experiment. We record them because each one would have turned infrastructure behavior into
+apparent agent behavior.
+
+\paragraph{1. Free endpoints are not infrastructure.} We first planned to use free
+(\code{:free}) endpoints. \code{qwen/qwen3-coder:free} was withdrawn on 2026-10-11, and
+\code{poolside/laguna-s-2.1:free} was throttled for many minutes per call. Both were dropped
+before any confirmatory data in favor of the paid endpoints of the same models. With
+provider-side prompt caching the paid runs were cheap: 83\% of prompt tokens in the pilot and
+96--97\% in the shakedown were served from cache, and Phase~1 cost about USD~0.04 per attempt.
+Open weights mean the study stays reproducible when endpoints change.
+
+\paragraph{2. Providers may ignore reasoning settings.} With extended thinking enabled, the
+provider ignored both \code{reasoning.max\_tokens} and \code{effort: low}. Calls ran to the output
+cap without a tool call, and the scaffold counted them as format errors. Six of 17 shakedown
+attempts ended this way, a failure mode unrelated to the code base that would have added noise to
+every arm. Turning thinking off removed it (0 format errors in 120 calls). Measure the format-error
+rate in a shakedown, and fix reasoning settings before registration on reliability grounds alone.
+
+\paragraph{3. Errors can arrive with HTTP 200.} Some upstream errors came back as HTTP 200 with
+an \code{error} body and no \code{choices}. The stock scaffold crashed on them with a
+\code{KeyError}. A thin wrapper turns them into retryable API errors and raises the request
+timeout from 60 to 300\,s. More generally, the harness keeps an explicit allow-list of exit states
+that count as agent outcomes. Everything else is infrastructure: it is rolled back to the last
+commit and retried, never scored.
+
+\paragraph{4. Command timeouts do not kill processes.} When a command times out, the scaffold
+stops waiting, but a hung \code{mvn test} or a server the agent started in the background can keep
+running inside the container. It then competes for the 2-CPU budget and inflates the wall time of
+later commands. Wrapping every command in \code{timeout -k 5 590} inside the container, 10\,s
+before the scaffold's own 600\,s limit, and removing the container after each attempt fixed this.
+
+\paragraph{5. Define ``regression'' with care.} In a cumulative design, the naive definition (any
+earlier hidden test that fails now) counts every earlier task the agent never solved as a
+regression in every later attempt. We define a regression as a test that passed at the previous
+grading and fails now, record ``still failing'' tests separately, and compare against the last
+snapshot that built and started.
+
+\paragraph{6. Cumulative grading needs \emph{supersedes}.} Legitimate tickets change baseline
+behavior: a new search parameter that used to be rejected, a stricter rule that an old test
+violates, an extended CapabilityStatement that an old test checks exactly. Without an explicit
+list of superseded tests, correct solutions would register as regressions. Nine of 24 tasks needed
+such entries. A full shakedown trajectory over all 24 tasks, run before registration, found these
+conflicts. Configuration must also accumulate, so that earlier integration tasks keep being tested
+against their mock servers.
+
+\paragraph{7. Make every step resumable and idempotent.} Long runs on a laptop get interrupted. If
+the process is killed between writing a result row and saving trajectory state, a naive restart
+grades the same task twice. The runner reconciles state with the results file at startup.
+Measuring erosion post hoc from git snapshots, rather than in the loop, means a crashed or
+upgraded measurement tool never costs agent runs.
+
+\paragraph{8. Pin and adapt the measurement tools.} CK 0.7.0 predates Java records. It either mis-parsed
+Java~21 syntax or lost every type in a file that contains a record (22 files in the \HEX{}
+baseline, 3--4 in the others). Without the desugaring step (\S\ref{sec:measures}), coupling and
+cohesion would have been computed on an incomplete set of types that differs by variant. We pinned tool versions in a separate image tag, checked release
+digests, and verified that CK reports no errors on the baselines.
+
+% =====================================================================================
+\section{Conclusion}\label{sec:conclusion}
+
+We set out to test, under preregistered control, whether layered and hexagonal architecture help
+or hinder AI coding agents that evolve a Java service over many tasks, and whether the agents
+preserve the architecture. \RESULT{conclusion-summary}. \TODO{Two to three sentences after
+unblinding, limited to supported hypotheses; state Phase 2 and Study 2 (guardrails) as next steps.}
+
+\paragraph{Data availability.} All materials are released under MIT (code) and CC-BY 4.0 (text,
+data): the three variants, specification and clarifications, tasks, hidden tests, harness, agent
+and model configuration, sandbox Dockerfiles, raw agent transcripts, per-task git snapshots,
+results and erosion tables, and analysis scripts. All data are synthetic. OSF project:
+\url{https://osf.io/rneym}. Registrations: \url{https://osf.io/r5t3d} (Phase~1, embargoed until
+2027-07-31) and \url{https://osf.io/w467e} (idea). Code: \TODO{GitHub URL and Zenodo DOI}.
+
+\paragraph{Use of AI tools.} AI coding agents built the three variants from the author's
+specification under the author's review (\S\ref{sec:variants}). \TODO{Disclose AI assistance in
+harness development and in drafting this manuscript, following the target venue's policy.}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}
