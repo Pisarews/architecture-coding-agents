@@ -140,6 +140,12 @@ def main() -> int:
         init_repo(args.domain, args.variant, repo)
     state = json.loads(state_f.read_text()) if state_f.exists() else {"done": [], "infra_retries": {}}
 
+    # guard against a kill between writing the result row and saving state: never grade a task twice
+    if results_f.exists():
+        for line in results_f.read_text().splitlines():
+            r = json.loads(line) if line.strip() else {}
+            if r.get("trajectory") == traj_id and not r.get("missing") and r.get("task") not in state["done"]:
+                state["done"].append(r["task"])
     did = 0
     for i, task in enumerate(tasks):
         if task["id"] in state["done"]:
