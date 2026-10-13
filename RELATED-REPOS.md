@@ -215,3 +215,14 @@ isolate memorization. **P** separates "familiar idiom" from "memorized file".
   open-data models. Sending set F to providers must use no-training / zero-retention settings,
   the same as the main experiment, so the materials stay uncontaminated until release.
 - **Cost.** Under 1% of the main experiment's token budget. Recorded in the run log and reported.
+
+## 8. Closest papers (literature check 2026-10-13)
+
+| Paper | What it does | Relation to this study |
+|---|---|---|
+| [arXiv 2608.21747](https://arxiv.org/abs/2608.21747), *Architecture as Capability Equalizer for Coding Agents* (Aug 2026) | Controlled experiment, 6 models. Varies how an architecture is *specified* (including ArchUnit-style rules); structured specifications help weaker models most | Does not vary the architecture itself. Directly relevant to Study 2 (G1 instructions): we must position G2 hooks and erosion-over-time against it |
+| [arXiv 2512.04273](https://arxiv.org/pdf/2512.04273), *Quantitative Analysis of Technical Debt and Pattern…* | Pilot: GPT-5.1, Claude 4.5 Sonnet and Llama 3 8B build a hexagonal microservice; without automated architectural linting, structural debt accumulates faster with small models | Single style, no controlled variants; supports H2/H6 motivation and Study 2 G2 |
+| Stoyanov (2026), [blog](https://dev.to/kstoyanovai/i-expected-hexagonal-architecture-to-help-my-coding-agent-it-didnt-3blg) + Zenodo report | Flat vs hexagonal, one Java system, 9 + 6 tasks; hexagonal took 37.8% longer to acceptance | Single system and author, not preregistered; anecdotal support for H1 |
+| [arXiv 2605.20049](https://arxiv.org/abs/2605.20049), *Does Code Cleanliness Affect Coding Agents?* | Minimal pairs on cleanliness; leaves open whether effects compound over long-horizon evolution | We address that open question for architecture |
+| [arXiv 2604.16323](https://arxiv.org/pdf/2604.16323), *Beyond the 'Diff': Addressing Agentic Entropy* | Framing: agents optimise local correctness and drift from global architectural intent | Conceptual framing for H2 and Study 2 |
+| [arXiv 2608.16630](https://arxiv.org/pdf/2608.16630), *The Working Set of a Coding Agent: Coherence Debt in Repository-Scale Tasks* | Coherence debt in repository-scale tasks | Related mechanism (localization / working set), to read in full |
