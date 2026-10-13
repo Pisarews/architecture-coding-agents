@@ -1,0 +1,7 @@
+id: T07
+stratum: C
+pilot: false
+depends_on: []
+hidden_tests: [T07Test]
+supersedes: []
+app_args: []

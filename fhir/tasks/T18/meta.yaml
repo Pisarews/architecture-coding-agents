@@ -1,0 +1,8 @@
+# supersedes: the baseline test expects `_count` to be 400 not-supported; T18 makes it a valid parameter.
+id: T18
+stratum: F
+pilot: false
+depends_on: []
+hidden_tests: [T18Test]
+supersedes: ["PatientTest#unknownSearchParamIs400NotSupported"]
+app_args: []

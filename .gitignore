@@ -1,0 +1,7 @@
+target/
+**/gate-logs/
+data/
+*.log
+.DS_Store
+__pycache__/
+harness/docker/warm/

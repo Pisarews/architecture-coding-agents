@@ -1,0 +1,7 @@
+id: T03
+stratum: C
+pilot: false
+depends_on: []
+hidden_tests: [T03Test]
+supersedes: []
+app_args: []

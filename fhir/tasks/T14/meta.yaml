@@ -1,0 +1,8 @@
+# supersedes: the baseline exact CapabilityStatement check (new Encounter search parameters).
+id: T14
+stratum: F
+pilot: false
+depends_on: []
+hidden_tests: [T14Test]
+supersedes: ["ProtocolTest#capabilityStatementDescribesServer"]
+app_args: []

@@ -1,0 +1,7 @@
+id: T05
+stratum: D
+pilot: false
+depends_on: []
+hidden_tests: [T05Test]
+supersedes: []
+app_args: []

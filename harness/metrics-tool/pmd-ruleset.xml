@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fixed PMD rule set for the erosion metric `pmd_violations` (PREREGISTRATION §4.3, harness/EROSION.md).
+
+  Choice: PMD's own "quickstart" rule set, frozen by pinning PMD 7.28.0 in the sandbox image
+  (archagents/sandbox:2). Why quickstart and not the full bestpractices + design + errorprone
+  categories: quickstart is the subset the PMD maintainers curate as broadly agreed and low-noise
+  for any Java code base, across all categories. The full categories include rules that are
+  matters of taste or that fire on almost every class of idiomatic Spring code (LawOfDemeter,
+  AvoidLiteralsInIfCondition, DataClass, TooManyMethods, AvoidFieldNameMatchingTypeName...). Those
+  would dominate the count with style noise, and they penalize some architectures by construction
+  (e.g. many small mapper/port classes vs. a few large controllers), not by erosion.
+  The rule set is not edited for this study; its exact content is whatever PMD 7.28.0 ships.
+-->
+<ruleset name="archagents-erosion"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    <description>PMD quickstart (PMD 7.28.0), unchanged.</description>
+    <rule ref="rulesets/java/quickstart.xml"/>
+</ruleset>

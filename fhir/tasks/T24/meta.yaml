@@ -1,0 +1,7 @@
+id: T24
+stratum: I
+pilot: false
+depends_on: []
+hidden_tests: [T24Test]
+supersedes: []
+app_args: ["--fhir.mirror.base-url=http://localhost:{MOCK_PORT}/mirror"]

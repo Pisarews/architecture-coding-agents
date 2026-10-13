@@ -1,0 +1,7 @@
+id: T04
+stratum: I
+pilot: false
+depends_on: []
+hidden_tests: [T04Test]
+supersedes: []
+app_args: ["--fhir.notifications.critical-url=http://localhost:{MOCK_PORT}/critical"]

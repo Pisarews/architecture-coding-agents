@@ -1,0 +1,41 @@
+# Harness smoke test without any API: a scripted "model" that solves P3 in the NONE variant.
+scripted:
+  model_class: deterministic
+  model_name: scripted-p3
+  outputs:
+    - role: assistant
+      content: "Add a servlet filter that sets the header."
+      extra:
+        actions:
+          - command: |
+              mkdir -p /workspace/src/main/java/org/archagents/fhir/util && cat <<'EOF2' > /workspace/src/main/java/org/archagents/fhir/util/FhirVersionHeaderFilter.java
+              package org.archagents.fhir.util;
+
+              import jakarta.servlet.Filter;
+              import jakarta.servlet.FilterChain;
+              import jakarta.servlet.ServletException;
+              import jakarta.servlet.ServletRequest;
+              import jakarta.servlet.ServletResponse;
+              import jakarta.servlet.http.HttpServletResponse;
+              import java.io.IOException;
+              import org.springframework.stereotype.Component;
+
+              @Component
+              public class FhirVersionHeaderFilter implements Filter {
+                  @Override
+                  public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
+                      ((HttpServletResponse) res).setHeader("X-FHIR-Version", "4.0.1");
+                      chain.doFilter(req, res);
+                  }
+              }
+              EOF2
+    - role: assistant
+      content: "Build offline."
+      extra:
+        actions:
+          - command: "cd /workspace && mvn -q -B package -DskipTests && ls target/*.jar"
+    - role: assistant
+      content: "Done."
+      extra:
+        actions:
+          - command: "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT"

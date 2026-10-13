@@ -1,0 +1,8 @@
+# supersedes: the baseline exact CapabilityStatement check (new `vread` interaction).
+id: T22
+stratum: F
+pilot: false
+depends_on: []
+hidden_tests: [T22Test]
+supersedes: ["ProtocolTest#capabilityStatementDescribesServer"]
+app_args: []

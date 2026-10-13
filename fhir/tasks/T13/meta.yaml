@@ -1,0 +1,8 @@
+# supersedes: the baseline test updates an Encounter to `finished` without period.end, which T13 makes 422.
+id: T13
+stratum: D
+pilot: false
+depends_on: []
+hidden_tests: [T13Test]
+supersedes: ["EncounterTest#updateChangesStatusAndVersion"]
+app_args: []

@@ -1,0 +1,7 @@
+id: P3
+stratum: C
+pilot: true
+depends_on: []
+hidden_tests: [P3Test]
+supersedes: []
+app_args: []

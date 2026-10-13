@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use these materials or data, please cite them as below."
+title: "Software Architecture and AI Coding Agents: Effects of Layered and Hexagonal Architecture on Task Success, Cost, and Architectural Erosion in Java Projects"
+type: software
+authors:
+  - family-names: Pisarewski
+    given-names: Tomasz
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+license: MIT
+# doi: "10.5281/zenodo.XXXXXXX"   # Zenodo DOI of the cited release
+# url: "https://osf.io/XXXXX/"
+keywords:
+  - AI coding agents
+  - software architecture
+  - hexagonal architecture
+  - layered architecture
+  - architectural erosion
+  - ArchUnit
+  - controlled experiment

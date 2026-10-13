@@ -1,0 +1,7 @@
+id: T08
+stratum: I
+pilot: false
+depends_on: []
+hidden_tests: [T08Test]
+supersedes: []
+app_args: ["--fhir.sms.gateway-url=http://localhost:{MOCK_PORT}/sms"]

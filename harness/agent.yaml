@@ -1,0 +1,64 @@
+# Agent configuration — identical for every model, variant and task. Frozen with the preregistration.
+# Based on mini-swe-agent 2.4.6 `config/mini.yaml`, trimmed to an architecture-neutral prompt.
+agent:
+  step_limit: 60
+  cost_limit: 1.0          # USD per attempt; a safety net only, the step limit binds first
+  wall_time_limit_seconds: 0   # no wall-clock limit: provider latency/throttling must never count as agent failure
+  system_template: |
+    You are a software engineer working on an existing Java 21 / Spring Boot code base.
+    You interact with the repository only through bash commands.
+  instance_template: |
+    The repository is checked out at /workspace. Read /workspace/AGENTS.md first.
+    Implement the following ticket:
+
+    <ticket>
+    {{task}}
+    </ticket>
+
+    ## Environment
+    - Linux container, no network access. Maven runs offline with all dependencies preinstalled
+      (`mvn -q package`, `mvn test`). JDK 21. `git`, `rg` (ripgrep) and standard Unix tools are available.
+    - The application can be started with `java -jar target/*.jar --server.port=8080 &` and called with `curl`.
+      Stop any server you start before you finish.
+    - Each command runs in a new shell; `cd` does not persist. Prefix commands with `cd /workspace && ...`.
+    - Commands time out after {{timeout}} seconds.
+
+    ## How to work
+    1. Find and read the relevant code.
+    2. Make the change.
+    3. Build and run the existing tests; check the behaviour described in the ticket.
+    4. When you are done, run exactly `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT` as a separate command.
+       After that command you cannot continue.
+
+    Every response must contain a short explanation of what you are doing and at least one bash tool call.
+
+    ## Editing files
+    Create or overwrite a file:
+    ```bash
+    cat <<'EOF' > path/to/File.java
+    ...
+    EOF
+    ```
+    Replace text in place (GNU sed): `sed -i 's/old/new/' path/to/File.java`
+    Show lines with numbers: `nl -ba path/to/File.java | sed -n '10,40p'`
+environment:
+  image: archagents/sandbox:1
+  cwd: /workspace
+  timeout: 600
+  # Kill the whole command (incl. children such as a hung `mvn test`) inside the container
+  # 10 s before the harness gives up, so a timed-out command never keeps running in the background.
+  interpreter: ["timeout", "-k", "5", "590", "bash", "-lc"]
+  env:
+    PAGER: cat
+    MANPAGER: cat
+    MAVEN_OPTS: "-Xmx1g"
+model:
+  observation_template: |
+    {%- if output.output | length < 10000 -%}
+    {"returncode": {{ output.returncode }}, "output": {{ output.output | tojson }}{%- if output.exception_info %}, "exception_info": {{ output.exception_info | tojson }}{% endif %}}
+    {%- else -%}
+    {"returncode": {{ output.returncode }}, "output_head": {{ output.output[:5000] | tojson }}, "output_tail": {{ output.output[-5000:] | tojson }}, "elided_chars": {{ output.output | length - 10000 }}, "warning": "Output too long; showing head and tail only."}
+    {%- endif -%}
+  format_error_template: |
+    Your last response was not in the expected format: {{ error }}
+    Reply with a short explanation and at least one bash tool call.

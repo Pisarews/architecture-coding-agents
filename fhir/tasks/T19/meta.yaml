@@ -1,0 +1,7 @@
+id: T19
+stratum: C
+pilot: false
+depends_on: []  # soft dependency on T03 (ETag/versionId); the hidden tests do not need T03
+hidden_tests: [T19Test]
+supersedes: []
+app_args: []

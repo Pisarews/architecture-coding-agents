@@ -1,0 +1,35 @@
+# Model arms. Keys are what run_trajectory.py --model expects. Frozen with the preregistration.
+# API key: OPENROUTER_API_KEY in the environment (never committed).
+# Strong arm: Poolside Laguna S 2.1 (118B-A8B, open weights, OpenMDW-1.1), paid endpoint.
+# The free endpoints tried first (qwen3-coder:free withdrawn; laguna-s-2.1:free throttled for
+# minutes per call) were unusable; see DEVIATIONS-free log in PREREGISTRATION §3.4.
+strong:
+  model_class: robust_openrouter.RobustOpenRouterModel
+  model_name: poolside/laguna-s-2.1
+  cost_tracking: ignore_errors        # some providers report cost 0; cost is recomputed from tokens in analysis
+  model_kwargs:
+    temperature: 0.2
+    max_tokens: 16384
+    reasoning:
+      enabled: false                  # thinking OFF. With thinking on, the provider ignored both
+                                      # reasoning.max_tokens and effort=low; calls ran to the output cap
+                                      # with no tool call (shakedown: 6/17 attempts ended in format errors;
+                                      # retests with capped/low thinking: same). Thinking off: 0 format
+                                      # errors in 120 calls. Decided on reliability only, before registration.
+  window_only: false                  # remote API: may run any time
+weak:
+  model_class: robust_openrouter.RobustOpenRouterModel
+  model_name: qwen/qwen3-coder-30b-a3b-instruct
+  cost_tracking: ignore_errors        # some providers report cost 0; cost is recomputed from tokens in analysis
+  model_kwargs:
+    temperature: 0.2
+    max_tokens: 16384
+  window_only: false
+local:                                # fallback weak arm, $0; runs on the laptop itself, so night window only
+  model_class: litellm
+  model_name: ollama_chat/qwen2.5-coder-ctx
+  cost_tracking: ignore_errors
+  model_kwargs:
+    temperature: 0.2
+    api_base: http://localhost:11434    # the agent loop runs on the host, only commands run in Docker
+  window_only: true

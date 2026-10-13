@@ -1,0 +1,7 @@
+id: T02
+stratum: F
+pilot: false
+depends_on: []
+hidden_tests: [T02Test]
+supersedes: ["ProtocolTest#capabilityStatementDescribesServer"]
+app_args: []

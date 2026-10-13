@@ -1,0 +1,7 @@
+id: P1
+stratum: D
+pilot: true
+depends_on: []
+hidden_tests: [P1Test]
+supersedes: []
+app_args: []

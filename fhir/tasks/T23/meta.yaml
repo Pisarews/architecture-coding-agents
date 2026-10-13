@@ -1,0 +1,8 @@
+# supersedes: the baseline exact CapabilityStatement check (new AuditEvent resource).
+id: T23
+stratum: C
+pilot: false
+depends_on: []
+hidden_tests: [T23Test]
+supersedes: ["ProtocolTest#capabilityStatementDescribesServer"]
+app_args: []

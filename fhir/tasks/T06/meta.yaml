@@ -1,0 +1,7 @@
+id: T06
+stratum: F
+pilot: false
+depends_on: []
+hidden_tests: [T06Test]
+supersedes: ["ProtocolTest#capabilityStatementDescribesServer", "ClarificationsTest#c7_unsupportedMethodOnKnownTypeIs405"]
+app_args: []

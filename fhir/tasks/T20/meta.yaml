@@ -1,0 +1,7 @@
+id: T20
+stratum: I
+pilot: false
+depends_on: []  # delete events only if T06 is in place; that test is skipped (assumption) when DELETE is not supported
+hidden_tests: [T20Test]
+supersedes: []
+app_args: ["--fhir.events.webhook-url=http://localhost:{MOCK_PORT}/events"]

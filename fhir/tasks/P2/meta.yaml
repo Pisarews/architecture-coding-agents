@@ -1,0 +1,7 @@
+id: P2
+stratum: F
+pilot: true
+depends_on: []
+hidden_tests: [P2Test]
+supersedes: ["ProtocolTest#capabilityStatementDescribesServer"]
+app_args: []

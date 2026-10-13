@@ -1,0 +1,7 @@
+id: T16
+stratum: I
+pilot: false
+depends_on: []
+hidden_tests: [T16Test]
+supersedes: []
+app_args: ["--fhir.terminology.base-url=http://localhost:{MOCK_PORT}/terminology"]

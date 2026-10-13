@@ -1,0 +1,9 @@
+# supersedes: these baseline tests create Practitioners with a urn:npwz identifier while no registry mock
+# is listening; from T12 on that is 503 (registry unreachable) by design, in this and every later grading.
+id: T12
+stratum: I
+pilot: false
+depends_on: []
+hidden_tests: [T12Test]
+supersedes: ["PractitionerTest#createReadRoundTrip", "PractitionerTest#searchByFamilyAndIdentifier", "PractitionerTest#r3_familyRequired"]
+app_args: ["--fhir.registry.base-url=http://localhost:{MOCK_PORT}/registry"]
