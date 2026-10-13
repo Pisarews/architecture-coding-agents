@@ -3,7 +3,7 @@
 **Software Architecture and AI Coding Agents: Effects of Layered and Hexagonal Architecture on
 Task Success, Cost, and Architectural Erosion in Java Projects**
 
-Author: Tomasz Pisarewski (ORCID: `TODO`)
+Author: Tomasz Pisarewski (Fide-Soft)
 Template: OSF Preregistration (fields below map 1:1 to the OSF form)
 Status: **FROZEN 2026-10-13** — git tag `prereg-v1`; registered on OSF before any confirmatory run.
 
@@ -23,13 +23,16 @@ equivalent variants: **NONE** (no explicit architecture), **LAYERED**
 (controller–service–repository), and **HEXAGONAL** (ports and adapters). An AI coding agent
 completes the same ordered sequence of development tasks in each variant, working
 cumulatively on its own previous changes. A second domain lets us test whether an
-architecture effect generalizes beyond one application. We measure task success with hidden acceptance
+architecture effect generalizes beyond one application.
+
+**This registration covers Phase 1: the FHIR application only** (24 tasks, 3 variants,
+2 models, 5 runs; §2.3). ORDERS is built the same way and registered separately as Phase 2. We measure task success with hidden acceptance
 tests, cost (tokens, agent steps, wall time, files touched), and architectural erosion after
 every task.
 
 **Prior evidence (exploratory, not part of this confirmatory test).** In our earlier minimal-pair
-study on small Python repositories (*The Indirection Tax*, Pisarewski 2026, preprint
-`TODO arXiv id`), ports-and-adapters indirection lowered single-task success
+study on small Python repositories (*The Indirection Tax*, Pisarewski 2026, unpublished manuscript;
+materials to be released with this study), ports-and-adapters indirection lowered single-task success
 (pass@k 1.00 → 0.73 for a 14B model, → 0.40 for a 7B model). The effect was concentrated
 in tasks whose logic sat in adapter modules away from the agent's entry point, and was
 larger for the weaker model. That study did not cover cumulative evolution, erosion,
