@@ -134,6 +134,7 @@ def fig_erosion(ero, out):
     by_traj = erosion_table(ero)
     series, _ = erosion_index(by_traj)
     fig, ax = plt.subplots(figsize=(7, 3))
+    ends = []
     for arm in ARMS:
         pts = defaultdict(list)
         for t, s in series.items():
@@ -147,10 +148,20 @@ def fig_erosion(ero, out):
         sem = np.array([np.std(pts[x], ddof=1) / math.sqrt(len(pts[x])) if len(pts[x]) > 1 else 0 for x in xs])
         ax.plot(xs, mean, color=COLOR[arm], lw=2, marker=MARKER[arm], ms=4, zorder=3)
         ax.fill_between(xs, mean - 1.96 * sem, mean + 1.96 * sem, color=COLOR[arm], alpha=0.15, lw=0)
-        ax.annotate(LABEL[arm], (xs[-1], mean[-1]), xytext=(6, 0), textcoords="offset points",
+        ends.append((mean[-1], arm, xs[-1]))
+    # direct labels at the line ends, nudged apart so they never overlap
+    ends.sort()
+    min_gap = 0.06 * (ax.get_ylim()[1] - ax.get_ylim()[0])
+    placed = []
+    for y, arm, x in ends:
+        y_lab = max(y, placed[-1] + min_gap) if placed else y
+        placed.append(y_lab)
+        ax.annotate(LABEL[arm], (x, y), xytext=(x + 0.4, y_lab), textcoords="data",
                     va="center", color=INK, fontsize=8)
     ax.axhline(0, color=MUTED, lw=0.8)
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    last = max(x for _, _, x in ends) if ends else 0
+    ax.set_xlim(-0.5, last + 3)
+    ax.set_xticks(range(0, last + 1, 3))
     ax.set_xlabel("Task position (0 = baseline)")
     ax.set_ylabel("Erosion index (scaled Δ from baseline)")
     fig.tight_layout()
