@@ -76,6 +76,9 @@ def main() -> int:
             k, _, v = line.partition("=")
             os.environ[k.strip()] = v.strip()
     pending = [r for r in RUNS if not run_complete(r)]
+    log_txt = (OUT / "orchestrator.log").read_text() if (OUT / "orchestrator.log").exists() else ""
+    if "R5 dropped" in log_txt and 5 in pending:
+        pending.remove(5)  # the cost-rule decision is final; never re-evaluate it after a restart
     active: dict[int, subprocess.Popen] = {}
     r5_decided = 5 not in pending
     while pending or active:

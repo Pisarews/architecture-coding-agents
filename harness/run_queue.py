@@ -28,10 +28,13 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--window", default=None)
     ap.add_argument("--runs", default=None, help="comma-separated subset of the plan's runs (parallel workers)")
+    ap.add_argument("--models", default=None, help="comma-separated subset of the plan's models (parallel workers)")
     args = ap.parse_args()
     plan = yaml.safe_load(Path(args.plan).read_text())
     if args.runs:
         plan["runs"] = [int(r) for r in args.runs.split(",")]
+    if args.models:
+        plan["models"] = args.models.split(",")
     trajs = [dict(domain=d, variant=v, model=m, run=r)
              for d, v, m, r in itertools.product(plan["domains"], plan["variants"], plan["models"], plan["runs"])]
     rng = random.Random(plan.get("seed", 20261011) + 1000 * min(plan["runs"]))
