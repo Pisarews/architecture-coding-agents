@@ -1,10 +1,9 @@
 \documentclass[10pt]{article}
 
 % ---------------------------------------------------------------------------
-% First full draft. Written BLIND to the Phase 1 outcomes: every confirmatory number is a
-% \RESULT{key} placeholder, filled in after analysis/analyze.py has run on data/phase1.
+% Full draft. Design and methods were written blind to the Phase 1 outcomes; results, discussion
+% and conclusion were written after analysis/analyze.py had run on data/phase1 (analysis.json).
 % Build: tectonic main.tex   (bibliography: refs.bib, run automatically)
-% Placeholder keys are also written to the log as "RESULTKEY: <key>".
 % ---------------------------------------------------------------------------
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -23,7 +22,6 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit}
 \definecolor{linknavy}{rgb}{0.13,0.29,0.53}
-\definecolor{resred}{rgb}{0.70,0.05,0.05}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage[font=small,labelfont=bf,skip=6pt]{caption}
@@ -40,7 +38,7 @@
 \pagestyle{fancy}\fancyhf{}
 \renewcommand{\headrulewidth}{0.3pt}
 \fancyhead[L]{\small\itshape Architecture and AI Coding Agents: a Preregistered Experiment}
-\fancyhead[R]{\small\itshape Draft --- results blinded}
+\fancyhead[R]{\small\itshape Draft}
 \fancyfoot[C]{\small\thepage}
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
 
@@ -49,19 +47,8 @@
   \begin{quotation}\small\noindent\textbf{Abstract.}\enspace}
   {\end{quotation}\vspace{-0.6em}\begin{center}\rule{\textwidth}{0.4pt}\end{center}\vspace{0.4em}}
 
-% ---------------------------------------------------------------- placeholders
-% \RESULT{key}: a confirmatory or descriptive number from Phase 1, not yet known.
-\newcommand{\RESULT}[1]{\typeout{RESULTKEY: #1}\textcolor{resred}{\textbf{[#1]}}}
 % \TODO{text}: an author note that must be resolved before submission.
 \newcommand{\TODO}[1]{\textcolor{orange!70!black}{\textsf{\small[TODO: #1]}}}
-% One row of a contrast table: estimate, 95% CI, p, Holm-adjusted p.
-% #1 hypothesis, #2 contrast key, #3 row label, #4 estimate suffix
-\newcommand{\crow}[4]{#3 & \RESULT{#1-#2-#4} & \RESULT{#1-#2-ci} & \RESULT{#1-#2-p} & \RESULT{#1-#2-pholm}\\}
-% Figure that compiles before the figure file exists.
-\newcommand{\maybefig}[2]{%
-  \IfFileExists{#1}{\includegraphics[width=#2]{#1}}{%
-    \fbox{\parbox[c][3.2cm][c]{#2}{\centering\small\textsf{Figure pending: \texttt{\detokenize{#1}}}\\[2pt]
-    \textsf{(produced from data/phase1 after unblinding)}}}}}
 
 \newcommand{\NONE}{\textsc{None}}
 \newcommand{\LAY}{\textsc{Layered}}
@@ -91,16 +78,23 @@ service in Java~21 and Spring Boot~3.5 in three behaviorally equivalent variants
 architecture (\NONE), layered (\LAY), and hexagonal, i.e.\ ports and adapters (\HEX). All three
 pass the same 79-test black-box suite. Two open-weights models, Laguna~S~2.1 and
 Qwen3-Coder-30B-A3B, run in the mini-swe-agent scaffold. Each implements the same 24 product
-tickets in a fixed order, every ticket on top of its own previous changes, in five independent
-runs per cell (30 trajectories, 720 attempts). Hidden acceptance tests measure success. Tokens
-measure cost. After every task we measure erosion, using an architecture-agnostic index and
-ArchUnit conformance. Success (H3): \RESULT{H3-abstract} (hexagonal minus none:
-\RESULT{H3-hex-none-pp} percentage points, Holm-adjusted $p=$ \RESULT{H3-hex-none-pholm}).
-Cost (H1): \RESULT{H1-abstract}. Erosion (H2): \RESULT{H2-abstract}. Conformance (H6):
-\RESULT{H6-abstract}. Capability interaction (H4): \RESULT{H4-abstract}. The
-whole experiment ran on a laptop with Docker and cost \RESULT{cost-total} in API fees (budget
-USD~30). We release all variants, tasks, hidden tests, harness, transcripts, and per-task
-snapshots.
+tickets in a fixed order, every ticket on top of its own previous changes. A preregistered cost
+rule dropped the fifth run, leaving four runs per cell (24 trajectories, 576 attempts, none
+missing). Hidden acceptance tests measure success. Tokens measure cost. After every task we
+measure erosion with an architecture-agnostic index and with ArchUnit conformance.
+Architecture changed neither task success nor token cost. Success (H3) did not differ (hexagonal
+minus none: $-1.0$ percentage points, 95\% CI $[-6.8, 4.7]$, Holm-adjusted $p=1.00$), nor did
+total tokens (H1). The capable model solved 56\%, 57\% and 55\% of tasks in \NONE, \LAY{} and
+\HEX, although in \HEX{} it modified about twice as many files per task. Architecture did change what happened to the code. Contrary to H2, neither architecture
+eroded more slowly than \NONE. The layered code base eroded fastest, and the hexagonal one eroded
+significantly more slowly than the layered one (Holm-adjusted $p=0.031$). Conformance violations
+tended to accumulate (H6, not significant), with no difference between \LAY{} and \HEX. In
+exploratory analyses, three of four hexagonal trajectories of the capable model never violated
+their own rules, but hexagonal attempts more often left a project that did not build (30\% vs.\
+11\% in \NONE). The weaker model failed at the floor (2--5\% success), so the capability
+interaction (H4) cannot be interpreted. The whole experiment ran on a laptop with Docker and cost
+USD~24.25 in API fees. We release all variants, tasks, hidden tests, harness, transcripts and
+per-task snapshots.
 \end{abstract}
 
 \noindent\textbf{Keywords:} coding agents; software architecture; architecture erosion;
@@ -146,8 +140,17 @@ before any confirmatory run. We ask three research questions:
     agent-driven evolution, and do agents keep to the architecture's own rules? (H2; H6)
 \end{itemize}
 
+In short, for a capable agent we found no effect of architecture on success or token cost, but a
+clear difference in what happened to the code over 24 tasks: the layered code base eroded fastest,
+and the hexagonal one held its structure best. The weaker model failed at the floor, so the
+capability question (H4) remains open.
+
 \paragraph{Contributions.}
 \begin{enumerate}[itemsep=1pt]
+  \item \textbf{Evidence.} A preregistered test of architecture effects on agents under
+    sustained evolution. With a capable open-weights model, success and tokens did not differ
+    between architectures, while the erosion rate did (\HEX{} slower than \LAY); several
+    preregistered predictions were not supported, and we report them as such (\S\ref{sec:results}).
   \item \textbf{Controlled, equivalent variants.} Three architectures of one non-trivial
     service (2.2--4.1\,kLOC), with an identical external contract, schema and dependency set,
     admitted only after a mechanical equivalence gate. Building them in parallel exposed 13
@@ -156,13 +159,15 @@ before any confirmatory run. We ask three research questions:
     output across 24 tickets. Every task is a git snapshot, graded against all hidden tests so far
     and measured with a pinned erosion pipeline (ArchUnit, CK, PMD/CPD, SpotBugs).
   \item \textbf{Preregistration.} Hypotheses, tests, sample size and the analysis script were
-    frozen (git tag \code{prereg-v1}) and registered on OSF before data collection. This paper was
-    drafted before the results were known. Deviations are logged.
+    frozen (git tag \code{prereg-v1}) and registered on OSF before data collection. The design
+    and methods sections of this paper were drafted before the results were known. Four
+    deviations are logged and reported.
   \item \textbf{Open, reproducible, cheap.} Open-weights models, an offline Docker sandbox and an
-    unmodified public scaffold (mini-swe-agent~2.4.6). The full experiment cost about
-    USD~0.04 per attempt. All materials, transcripts and snapshots are released.
+    unmodified public scaffold (mini-swe-agent~2.4.6). The full experiment cost USD~24.25,
+    about USD~0.04 per attempt. All materials, transcripts and snapshots are released.
   \item \textbf{Lessons for low-budget agent experiments} (\S\ref{sec:lessons}): failure modes of
-    free and paid endpoints, scaffolds and graders that we hit and fixed before registration.
+    free and paid endpoints, scaffolds, graders and capability checks that we hit before and
+    during data collection.
 \end{enumerate}
 
 % =====================================================================================
@@ -183,7 +188,7 @@ long-horizon evolution tasks derived from release notes. SlopCodeBench~\citep{sl
 is the closest design to ours: agents extend their own code over checkpoints, and erosion and
 verbosity are measured at every step. It does not manipulate architecture while holding behavior
 constant, and that manipulation is what this study adds. The notions of \emph{agentic
-entropy}~\citep{agenticentropy2026}, where agents optimize local correctness and drift from global
+entropy}, introduced in a position paper~\citep{agenticentropy2026}, where agents optimize local correctness and drift from global
 architectural intent, and \emph{coherence debt} in repository-scale tasks~\citep{coherencedebt2026}
 give conceptual framings for H2 and H6.
 
@@ -202,11 +207,12 @@ the effect mainly to file naming. All of these work with single tasks or single 
 Capability Equalizer}~\citep{archequalizer2026} varies how an architecture is \emph{specified} to
 six models, including ArchUnit-style rules, and finds that structured specifications help weaker
 models most. It does not vary the architecture of the code. A pilot study~\citep{hexdebt2025} has
-three models build a hexagonal microservice and reports that, without automated architectural
-linting, structural debt accumulates faster with small models. It studies one style with no
-controlled alternative. In grey literature, Stoyanov~\citep{stoyanov2026hexagonal} compares a flat
+three models build a hexagonal microservice once and reports that, without automated
+architectural linting, the smallest model accumulates structural debt fastest. It studies one
+style with no controlled alternative and no sustained evolution. In grey literature, Stoyanov~\citep{stoyanov2026hexagonal} compares a flat
 and a hexagonal version of one Java system on 9 + 6 tasks and reports that the hexagonal version
-took 37.8\% longer to reach acceptance. That comparison involves one system and one author and was
+took 37.8\% longer to reach acceptance on the nine feature tasks (about 8\% longer on the six
+challenges). That comparison involves one system and one author and was
 not preregistered. Together these works motivate H1, H2 and H6 but do not test them under control.
 
 \paragraph{Architecture erosion.} Perry and Wolf~\citep{perry1992foundations} distinguish
@@ -387,7 +393,8 @@ because provider latency must never become an agent failure.
   \item \emph{weak}: Qwen3-Coder-30B-A3B-Instruct~\citep{qwen3report}, the model used in the
     cloud runs of the predecessor study. A preregistered floor rule would have replaced it with
     Qwen3-Coder-Next if it had solved fewer than 30\% of pilot attempts in \NONE. The rule was not
-    triggered.
+    triggered. Under the cumulative protocol the model nevertheless failed at the floor
+    (\S\ref{sec:res-h4}).
 \end{itemize}
 Open weights matter for reproducibility. Hosted endpoints change or disappear (\S\ref{sec:lessons}),
 but anyone can re-run the study with the same weights. The serving provider is logged per call. In
@@ -420,8 +427,9 @@ excluded because of their outcome values.
 \paragraph{Scheduling.} Task order is fixed. Execution is interleaved: for each task position, the
 harness visits the trajectories in a seeded random order. Provider drift, throttling or a withdrawn
 model therefore hits all architecture arms equally. As a logged deviation (\S\ref{sec:prereg}),
-Phase~1 runs one such interleaving worker per run, two to three in parallel. Each worker contains
-all six architecture $\times$ model trajectories of its run.
+Phase~1 ran one such interleaving worker per run, two to three in parallel. Each worker contained
+all six architecture $\times$ model trajectories of its run. After a host interruption, the rest of
+run R4 ran in two workers, one per model, each interleaving the three architectures.
 
 \subsection{Measures}\label{sec:measures}
 
@@ -465,7 +473,7 @@ d_{t,k,m} &= x_{t,k,m} - x_{t,0,m}, &
 s_m &= \operatorname{SD}_t\!\left(d_{t,K_t,m}\right), &
 E_{t,k} &= \frac{1}{|M^\ast|}\sum_{m\in M^\ast}\frac{d_{t,k,m}}{s_m},
 \end{align}
-where $K_t$ is the last compiling snapshot of $t$, the standard deviation pools all 30 trajectories
+where $K_t$ is the last compiling snapshot of $t$, the standard deviation pools all trajectories
 across arms and models, and $M^\ast=\{m : s_m>0\}$. A component with zero pooled spread is dropped
 and reported. There is no centering, so $E=0$ still means ``no change since baseline'' (centering
 would add a constant per component and not change any slope). The H2 outcome is the OLS slope
@@ -518,8 +526,10 @@ repeat the test on successful attempts only, model calls, files changed, wall ti
 USD.
 
 \paragraph{Trajectory-level tests (H2, H6).} We fit one OLS slope per trajectory and compare arms with
-a two-sided permutation test that shuffles architecture labels within model strata (10 trajectories
-per arm, 10,000 relabelings).
+a two-sided permutation test that shuffles architecture labels within model strata (10,000
+relabelings; 10 trajectories per arm as designed, 8 after the cost rule dropped run R5). For the H6
+claim that violations accumulate, a sign-flip test on the per-trajectory slopes tests whether their
+mean differs from zero.
 
 \paragraph{Inference criteria.} $\alpha=0.05$. The three architecture contrasts within each
 hypothesis are Holm-corrected~\citep{holm1979simple}. A directional hypothesis counts as supported
@@ -530,8 +540,11 @@ a logistic GLMM \code{success \textasciitilde{} architecture * model + (1|task) 
 LMMs with the same structure for $\log$ tokens, and \code{erosion\_index \textasciitilde{}
 architecture * task\_index + (task\_index|trajectory)}. A sensitivity analysis adds
 \code{dependency\_failed} to the success model. Where models and primary tests disagree, both are
-reported. \TODO{GLMM/LMM and the dependency\_failed sensitivity analysis are not implemented in
-analyze.py; implement exactly as preregistered and label any choices not fixed there.}
+reported. The frozen script lacked these models. They were added before any Phase~1 outcome was
+inspected (DEVIATIONS.md, 2026-10-13), with two choices the registration did not fix: the
+logistic GLMM is fitted by variational Bayes (\code{statsmodels} \code{BinomialBayesMixedGLM}) and
+reported as posterior means and standard deviations of the log-odds, and the LMMs are fitted by
+REML (\code{statsmodels} \code{MixedLM}).
 
 \paragraph{Sample size and sensitivity.} The design is 3 architectures $\times$ 2 models $\times$ 5
 runs = 30 trajectories of 24 tasks, i.e.\ 720 attempts. The size was set by resources: the study is
@@ -541,10 +554,16 @@ H3 test with 24 tasks $\times$ 5 runs a power of 0.93 at $\alpha=0.05$ for a 15 
 difference, and 0.86 at the Holm-adjusted $\alpha=0.0167$. For 10 points the power is 0.67 and 0.53.
 Smaller differences are reported as inconclusive, not absent. The simulation also showed that
 adding tasks raises power more than adding runs, because the task is the unit of inference. This is
-why we chose 24 tasks $\times$ 5 runs over 12 $\times$ 10 at equal cost.
-\TODO{the committed power\_sim.py has N\_TASKS = 12; archive the 24-task run that produced these
-numbers.} A preregistered, outcome-blind cost rule would drop run R5 if the forecast spend after
-R1 exceeded USD~30. Outcome: \RESULT{cost-rule-outcome}.
+why we chose 24 tasks $\times$ 5 runs over 12 $\times$ 10 at equal cost. A preregistered,
+outcome-blind cost rule would drop run R5 if the forecast spend after R1 exceeded USD~30.
+\emph{Outcome:} the rule ran when R1 completed (2026-10-14, 05:20 UTC). After 438 attempts the mean
+cost was USD~0.042 per attempt, a forecast of USD~30.24 for 720 attempts, so R5 was dropped as
+preregistered. The realized design is 3 $\times$ 2 $\times$ 4 = 24 trajectories, 576 attempts.
+Re-running the registered simulation with 4 runs (3,000 simulated data sets per effect size; not
+preregistered) gives a power of 0.88 at $\alpha=0.05$ and 0.77 at $\alpha=0.0167$ for 15 points,
+and 0.61 and 0.46 for 10 points. These figures assume, as the registered simulation did, a mean
+success near 75\% and two informative models; \S\ref{sec:threats} explains why the realized
+sensitivity is lower.
 
 \subsection{Preregistration and open science}\label{sec:prereg}
 
@@ -554,77 +573,114 @@ protocol was registered on 2026-10-13 at 09:25 UTC with the OSF Preregistration 
 \code{prereg-v1}, commit \code{3d347cb}. Before registration only harness-debugging data existed:
 three pilot tasks P1--P3 in all six cells (18 attempts) and one shakedown trajectory over T01--T24
 (\NONE, strong model). Both are excluded from every analysis. The models, settings, sandbox
-images, tasks, hidden tests and analysis script did not change after the freeze. One deviation is
-logged (DEVIATIONS.md): execution runs in two to three parallel workers, one per run, instead of a
-single queue over all 30 trajectories, because a sequential queue would take about 70 hours. Every
-worker interleaves all arms, so the protection against drift is kept. Further deviations:
-\RESULT{deviations-list}.
+images, tasks, hidden tests and the primary tests did not change after the freeze. Four deviations
+are logged in DEVIATIONS.md. None changes a primary test.
+\begin{enumerate}[itemsep=1pt]
+  \item \emph{Parallel workers} (2026-10-13). Execution ran in two to three parallel workers, one
+    per run, instead of a single queue over all 30 trajectories, because a sequential queue would
+    take about 70 hours. Every worker interleaves all arms, so the protection against drift is kept.
+  \item \emph{Completed secondary analyses} (2026-10-13). The GLMM/LMMs, the
+    \code{dependency\_failed} sensitivity analysis and the one-sample H6 test, all specified in the
+    registration but missing from the frozen script, were added to \code{analysis/analyze.py}
+    while data collection was running and before any outcome was inspected.
+  \item \emph{Host interruption} (2026-10-14). All collection processes stopped at about 07:25 UTC
+    when the host session ended, with R1--R3 complete and R4 at 30 of 144 attempts. The cost rule
+    had already dropped R5. R4 resumed at 12:50 UTC in two workers, one per model, each still
+    interleaving the three architectures. The interrupted attempt was rolled back and rerun, and
+    the orchestrator now treats the cost-rule decision as final across restarts.
+  \item \emph{Erosion snapshot source} (2026-10-14). In one trajectory (\LAY, weak model, R4) the
+    agent ran \code{git reset --hard} during T21 and removed the T20 commit from the branch history.
+    \code{harness/erosion.py} now measures the commit that was graded (recorded in
+    \code{results.jsonl}) instead of walking the history. This restores one missing measurement
+    (599 $\rightarrow$ 600 snapshots) and leaves all others unchanged.
+\end{enumerate}
 
 % =====================================================================================
 \section{Results}\label{sec:results}
 
-\TODO{Fill from data/phase1/analysis.json after data collection ends. Report every preregistered
-test, including non-significant ones.}
+All numbers come from \code{data/phase1/analysis.json} (primary tests and mixed models, produced by
+the frozen \code{analysis/analyze.py}) or directly from \code{results.jsonl} and
+\code{erosion.jsonl}. Every preregistered test is reported, whether significant or not.
+Analyses that were not preregistered as confirmatory are marked \emph{exploratory}; their
+$p$-values are not corrected and only describe this data set.
 
 \subsection{Data collection}\label{sec:res-collection}
 
-Data were collected from \RESULT{collection-start} to \RESULT{collection-end}
-(Table~\ref{tab:collection}).
+Data were collected from 2026-10-13, 09:30 UTC, five minutes after registration, to 2026-10-14,
+19:19 UTC, with one interruption of about 5.4 hours when the host session ended
+(Table~\ref{tab:collection}; deviation~3 in \S\ref{sec:prereg}). No attempt failed on
+infrastructure, so no attempt is missing and no trajectory was re-run. The one attempt cut off by
+the host stop was rolled back and rerun. At the level of single model calls, the API wrapper
+retried 7 transient provider errors (HTTP 500/520, timeouts returned with HTTP 200, one connection
+reset); none ended an attempt. Every strong-model call was served by Poolside and every weak-model
+call by SiliconFlow. Of all prompt tokens, 91.7\% were served from the provider cache.
 
 \begin{table}[t]\centering
 \caption{Data collection summary (top) and task success rate by architecture and model, pooled
-over runs and tasks (bottom).}
+over runs and tasks (bottom; successes / attempts in parentheses).}
 \label{tab:collection}\label{tab:success}
 \footnotesize
 \begin{tabular}[t]{@{}lr@{}}
 \toprule
-Runs completed (cost rule) & \RESULT{runs-final}\\
-Trajectories / attempts & \RESULT{N-trajectories} / \RESULT{N-attempts}\\
-Missing after 3 infra retries & \RESULT{N-missing}\\
-Infrastructure retries & \RESULT{N-infra-retries}\\
-Trajectories re-run ($>$20\% infra) & \RESULT{N-traj-rerun}\\
-Submitted / step limit / format err. & \RESULT{stop-reasons}\\
-Non-compiling snapshots N/L/H & \RESULT{noncompiling-by-arm}\\
-Providers (strong / weak) & \RESULT{providers}\\
-Total cost; per attempt & \RESULT{cost-total}; \RESULT{cost-per-attempt}\\
+Runs completed (cost rule) & 4 of 5 (R5 dropped)\\
+Trajectories / attempts & 24 / 576\\
+Missing after 3 infra retries & 0\\
+Infrastructure retries & 0 (1 rerun after host stop)\\
+Trajectories re-run ($>$20\% infra) & 0\\
+Submitted / step limit / format err. & 216 / 345 / 15\\
+Graded snapshot did not build, N/L/H: strong & 11 / 15 / 29 (of 96)\\
+\phantom{Graded snapshot did not build, N/L/H:} weak & 86 / 88 / 89 (of 96)\\
+Main code does not compile (erosion), N/L/H & 96 / 96 / 111 (of 192)\\
+Providers (strong / weak) & Poolside / SiliconFlow\\
+Total cost; per attempt & USD 24.25; USD 0.042\\
 \bottomrule
 \end{tabular}\\[6pt]
 \begin{tabular}[t]{@{}lccc@{}}
 \toprule
  & \NONE & \LAY & \HEX\\
 \midrule
-strong & \RESULT{succ-none-strong} & \RESULT{succ-lay-strong} & \RESULT{succ-hex-strong}\\
-weak & \RESULT{succ-none-weak} & \RESULT{succ-lay-weak} & \RESULT{succ-hex-weak}\\
-pooled & \RESULT{succ-none} & \RESULT{succ-lay} & \RESULT{succ-hex}\\
+strong & 56.2\% (54/96) & 57.3\% (55/96) & 55.2\% (53/96)\\
+weak & 5.2\% (5/96) & 2.1\% (2/96) & 4.2\% (4/96)\\
+pooled & 30.7\% (59/192) & 29.7\% (57/192) & 29.7\% (57/192)\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+The two models differed sharply. The strong model solved 56\% of its attempts. The weak model
+solved 11 of 288 (3.8\%), all of them on T01, T02, T07 or T09. In all 12 weak-model trajectories
+the snapshot stopped building at T01, T02 or T03, and only 8 of the 259 later weak-model attempts
+produced a building snapshot again. Because each task builds on the previous one, a broken build
+is close to an absorbing state: every later hidden test fails. The strong model also broke the
+build at times (11--30\% of attempts, Table~\ref{tab:collection}) but usually recovered within a
+few tasks. Of the API cost, USD~6.66 was spent by the strong arm and USD~17.59 by the weak arm.
 
 \begin{table}[t]\centering
 \caption{Task-level primary tests (24 tasks): mean per-task difference, 95\% cluster bootstrap CI,
 sign-flip $p$, Holm-adjusted $p$. H3 in percentage points of success; H1 in $\log$ total tokens
 (positive = first arm more expensive); H4 is the interaction contrast weak-model effect minus
-strong-model effect in pp (secondary, no Holm correction; prediction: negative for \HEX$-$\NONE).}
+strong-model effect in pp (no Holm correction; prediction: positive gap for the weak model, i.e.\
+negative for \HEX$-$\NONE). H4 is not interpretable because the weak model is at the floor
+(\S\ref{sec:res-h4}).}
 \label{tab:task-tests}\label{tab:h3}\label{tab:h1}\label{tab:h4}
 \small
-\begin{tabular}{@{}lllll@{}}
+\begin{tabular}{@{}lrlrr@{}}
 \toprule
 Contrast & Estimate & 95\% CI & $p$ & $p_\text{Holm}$\\
 \midrule
 \multicolumn{5}{@{}l}{\emph{H3 success (pp), two-sided}}\\
-\crow{H3}{lay-none}{\LAY$-$\NONE}{pp}
-\crow{H3}{hex-none}{\HEX$-$\NONE}{pp}
-\crow{H3}{hex-lay}{\HEX$-$\LAY}{pp}
+\LAY$-$\NONE & $-1.04$ & $[-6.25,\ 4.17]$ & 0.850 & 1.000\\
+\HEX$-$\NONE & $-1.04$ & $[-6.77,\ 4.69]$ & 0.866 & 1.000\\
+\HEX$-$\LAY  & $0.00$  & $[-5.73,\ 6.25]$ & 1.000 & 1.000\\
 \midrule
 \multicolumn{5}{@{}l}{\emph{H1 cost ($\Delta\log$ tokens, all attempts), directional}}\\
-\crow{H1}{lay-none}{\LAY$-$\NONE}{est}
-\crow{H1}{hex-none}{\HEX$-$\NONE}{est}
-\crow{H1}{hex-lay}{\HEX$-$\LAY}{est}
+\LAY$-$\NONE & $0.003$  & $[-0.081,\ 0.090]$ & 0.948 & 1.000\\
+\HEX$-$\NONE & $-0.014$ & $[-0.110,\ 0.089]$ & 0.798 & 1.000\\
+\HEX$-$\LAY  & $-0.017$ & $[-0.078,\ 0.043]$ & 0.603 & 1.000\\
 \midrule
 \multicolumn{5}{@{}l}{\emph{H4 capability interaction (pp), directional}}\\
-\LAY$-$\NONE & \RESULT{H4-lay-none-pp} & \RESULT{H4-lay-none-ci} & \RESULT{H4-lay-none-p} & n/a\\
-\HEX$-$\NONE & \RESULT{H4-hex-none-pp} & \RESULT{H4-hex-none-ci} & \RESULT{H4-hex-none-p} & n/a\\
-\HEX$-$\LAY & \RESULT{H4-hex-lay-pp} & \RESULT{H4-hex-lay-ci} & \RESULT{H4-hex-lay-p} & n/a\\
+\LAY$-$\NONE & $-4.17$ & $[-14.58,\ 6.25]$ & 0.566 & n/a\\
+\HEX$-$\NONE & $0.00$  & $[-12.50,\ 12.50]$ & 1.000 & n/a\\
+\HEX$-$\LAY  & $4.17$  & $[-8.33,\ 15.63]$ & 0.628 & n/a\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -632,181 +688,377 @@ Contrast & Estimate & 95\% CI & $p$ & $p_\text{Holm}$\\
 \subsection{H3: Success}\label{sec:res-h3}
 
 Table~\ref{tab:success} gives success rates per cell and Table~\ref{tab:task-tests} the primary
-test. H3 is \RESULT{H3-verdict}. The GLMM odds ratio for \HEX{} vs.\ \NONE{} is
-\RESULT{H3-glmm-hex-none} (profile CI). Adding \code{dependency\_failed}
-\RESULT{H3-depfailed-sensitivity}. Figure~\ref{fig:success-cost}a shows success per task.
+test. H3 is \emph{not supported}: no contrast comes close to significance, and all three point
+estimates lie within about one percentage point of zero. The confidence intervals exclude pooled
+differences larger than about 7~pp in either direction. Because the weak arm contributes almost no
+successes, a pooled difference corresponds to roughly twice that difference within the strong
+model. Restricted to the strong model (exploratory), \HEX$-$\NONE{} is $-1.0$~pp with a 95\% CI of
+$[-12.5, 10.4]$. Differences of 10--12~pp for a capable agent are therefore not ruled out. The
+secondary GLMM gives a \HEX{} vs.\ \NONE{} odds ratio of 1.07 for the strong model (reference
+level; approximate 95\% posterior interval 0.66--1.71) and 1.17 for \LAY{} (0.69--1.97). The
+preregistered \code{dependency\_failed} sensitivity analysis is degenerate: no task declares a hard
+dependency (two have soft dependencies their hidden tests do not need, \S\ref{sec:tasks}), so the
+covariate is zero for every attempt and the model cannot be estimated.
+Figure~\ref{fig:success-cost}a shows success per architecture and model, and
+Figure~\ref{fig:strata} by task stratum.
 
 \begin{figure}[t]\centering
-\begin{tabular}{@{}cc@{}}
-\maybefig{figures/success_by_task.pdf}{0.46\textwidth} &
-\maybefig{figures/cost_by_arm.pdf}{0.46\textwidth}\\
-\small (a) success per task and architecture, by model & \small (b) total tokens per attempt (log scale)
-\end{tabular}
-\caption{Success and cost by architecture. Placeholders until unblinding.}
+\includegraphics[width=0.86\textwidth]{figures/fig_success.pdf}\\[-2pt]
+\small (a) task success rate, mean over tasks with 95\% bootstrap CI over tasks\\[4pt]
+\includegraphics[width=0.86\textwidth]{figures/fig_cost.pdf}\\[-2pt]
+\small (b) total tokens per attempt (geometric mean over tasks, 95\% bootstrap CI)
+\caption{Success and cost by architecture, separately for the two models.}
 \label{fig:success-cost}
+\end{figure}
+
+\begin{figure}[t]\centering
+\includegraphics[width=0.8\textwidth]{figures/fig_strata.pdf}
+\caption{Task success rate by task stratum and architecture, pooled over both models (descriptive).}
+\label{fig:strata}
 \end{figure}
 
 \subsection{H1: Cost}\label{sec:res-h1}
 
-H1 is \RESULT{H1-verdict} (Table~\ref{tab:task-tests}, Figure~\ref{fig:success-cost}b). The share
-of attempts that hit the 60-call budget was \RESULT{budget-hit-rate-by-arm} (\NONE{} / \LAY{} /
-\HEX), which bounds how far cost is censored (\S\ref{sec:threats}). The LMM estimate for \HEX{}
-vs.\ \NONE{} is \RESULT{H1-lmm-hex-none}. Secondary measures are in Table~\ref{tab:h1sec}.
+H1 is \emph{not supported}. Total tokens per attempt did not differ between architectures
+(Table~\ref{tab:task-tests}, Figure~\ref{fig:success-cost}b). The largest estimate, \HEX$-$\NONE,
+is $-0.014$ in $\log$ tokens, about 1.4\% \emph{fewer} tokens, with a CI from about 10\% fewer to 9\%
+more. The LMM estimate for \HEX{} vs.\ \NONE{} is $0.004$ (95\% CI $[-0.112, 0.121]$, $p=0.94$),
+but its optimizer reported convergence problems. The share of attempts that hit the 60-call budget
+was 55.7\% / 60.4\% / 63.5\% (\NONE{} / \LAY{} / \HEX; strong model 57.3\% / 64.6\% / 65.6\%, weak
+model 54.2\% / 56.2\% / 61.5\%). Most attempts are therefore censored at the budget, and total
+tokens largely measure how much context the agent carried per call (\S\ref{sec:threats}).
+
+Among the secondary measures (Table~\ref{tab:h1sec}), only two differ. The agent modified more
+files in the structured variants: 1.9 more per attempt in \LAY{} and 3.0 more in \HEX{} than in
+\NONE{} (both Holm $p<0.001$). For the strong model the means are 4.8, 6.7 and 9.5 files. Wall
+time was \emph{shorter} in \HEX, by 59\,s per attempt vs.\ \NONE{} and 66\,s vs.\ \LAY. Wall time
+also reflects provider latency and build times inside the sandbox, so we do not interpret it
+further. Model calls, tokens of successful attempts and recomputed USD did not differ.
 
 \begin{table}[t]\centering
-\caption{H1 secondary cost measures and H5 (cost by stratum). Cells: mean per-task difference
-[95\% CI], $p$. H5 strata have six tasks each (exact sign-flip test; smallest attainable two-sided
-$p=0.031$).}
+\caption{H1 secondary measures (top; mean per-task difference, 95\% CI, Holm-adjusted $p$ within
+each measure) and H5 (bottom; \HEX$-$\NONE{} $\Delta\log$ tokens by stratum, six tasks each, exact
+sign-flip test, smallest attainable two-sided $p=0.031$). Successful-attempt tokens use only the
+tasks where both arms had a success (19, 17 and 18 tasks).}
 \label{tab:h1sec}\label{tab:h5}
 \footnotesize
-\begin{tabular}{@{}llll@{}}
+\begin{tabular}{@{}llrlr@{}}
 \toprule
-\multicolumn{4}{@{}l}{\emph{H1 secondary measures (Holm-adjusted $p$)}}\\
-Measure & \LAY$-$\NONE & \HEX$-$\NONE & \HEX$-$\LAY\\
+Measure & Contrast & Estimate & 95\% CI & $p_\text{Holm}$\\
 \midrule
-$\log$ tokens, successful attempts & \RESULT{H1sec-succtok-lay-none} & \RESULT{H1sec-succtok-hex-none} & \RESULT{H1sec-succtok-hex-lay}\\
-model calls & \RESULT{H1sec-calls-lay-none} & \RESULT{H1sec-calls-hex-none} & \RESULT{H1sec-calls-hex-lay}\\
-files modified & \RESULT{H1sec-files-lay-none} & \RESULT{H1sec-files-hex-none} & \RESULT{H1sec-files-hex-lay}\\
-wall time (s) & \RESULT{H1sec-wall-lay-none} & \RESULT{H1sec-wall-hex-none} & \RESULT{H1sec-wall-hex-lay}\\
-recomputed USD & \RESULT{H1sec-usd-lay-none} & \RESULT{H1sec-usd-hex-none} & \RESULT{H1sec-usd-hex-lay}\\
+\multirow{3}{*}{$\log$ tokens, successful attempts} & \LAY$-$\NONE & $-0.000$ & $[-0.145,\ 0.158]$ & 1.000\\
+ & \HEX$-$\NONE & $0.005$ & $[-0.206,\ 0.212]$ & 1.000\\
+ & \HEX$-$\LAY & $0.022$ & $[-0.104,\ 0.138]$ & 1.000\\
 \midrule
-\multicolumn{4}{@{}l}{\emph{H5: \HEX$-$\NONE{} $\Delta\log$ tokens by stratum}}\\
-Stratum & Estimate & 95\% CI & $p$\\
+\multirow{3}{*}{model calls} & \LAY$-$\NONE & $1.39$ & $[-0.71,\ 3.49]$ & 0.459\\
+ & \HEX$-$\NONE & $1.91$ & $[-0.01,\ 4.04]$ & 0.274\\
+ & \HEX$-$\LAY & $0.52$ & $[-0.74,\ 1.84]$ & 0.460\\
 \midrule
-D domain rule & \RESULT{H5-D-est} & \RESULT{H5-D-ci} & \RESULT{H5-D-p}\\
-F feature & \RESULT{H5-F-est} & \RESULT{H5-F-ci} & \RESULT{H5-F-p}\\
-C cross-cutting & \RESULT{H5-C-est} & \RESULT{H5-C-ci} & \RESULT{H5-C-p}\\
-I integration & \RESULT{H5-I-est} & \RESULT{H5-I-ci} & \RESULT{H5-I-p}\\
-(F, C, I) $-$ D & \RESULT{H5-multi-minus-D} & & \RESULT{H5-multi-minus-D-p}\\
+\multirow{3}{*}{files modified} & \LAY$-$\NONE & $1.93$ & $[1.05,\ 2.87]$ & $<$0.001\\
+ & \HEX$-$\NONE & $3.05$ & $[1.95,\ 4.28]$ & $<$0.001\\
+ & \HEX$-$\LAY & $1.11$ & $[0.01,\ 2.28]$ & 0.072\\
+\midrule
+\multirow{3}{*}{wall time (s)} & \LAY$-$\NONE & $6.9$ & $[-42.7,\ 61.0]$ & 0.805\\
+ & \HEX$-$\NONE & $-59.1$ & $[-106.1,\ -16.9]$ & 0.028\\
+ & \HEX$-$\LAY & $-66.1$ & $[-118.2,\ -22.7]$ & 0.017\\
+\midrule
+\multirow{3}{*}{recomputed USD ($\times 10^{-3}$)} & \LAY$-$\NONE & $-0.02$ & $[-3.01,\ 3.11]$ & 0.990\\
+ & \HEX$-$\NONE & $-1.68$ & $[-5.21,\ 2.40]$ & 0.815\\
+ & \HEX$-$\LAY & $-1.66$ & $[-4.11,\ 0.96]$ & 0.669\\
+\midrule
+\multicolumn{5}{@{}l}{\emph{H5: \HEX$-$\NONE{} $\Delta\log$ tokens by stratum} \hfill (column 5: unadjusted $p$)}\\
+D domain rule & & $0.130$ & $[-0.147,\ 0.417]$ & 0.438\\
+F feature & & $-0.053$ & $[-0.188,\ 0.125]$ & 0.563\\
+C cross-cutting & & $-0.144$ & $[-0.284,\ -0.019]$ & 0.125\\
+I integration & & $0.013$ & $[-0.092,\ 0.123]$ & 0.844\\
+(F, C, I) $-$ D & & $-0.192$ & & 0.117\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{H5: Cost by task stratum}\label{sec:res-h5}
 
-H5 is \RESULT{H5-verdict} (Table~\ref{tab:h5}).
+H5 is \emph{not supported} (Table~\ref{tab:h5}). The \HEX$-$\NONE{} cost difference was not larger
+in the multi-unit strata. The point estimate even has the opposite sign: \HEX{} was relatively
+cheaper in strata F, C and I than in D (difference $-0.19$ in $\log$ tokens, permutation
+$p=0.117$). No single stratum shows a significant difference.
 
 \subsection{H4: Capability interaction}\label{sec:res-h4}
 
-H4 is \RESULT{H4-verdict} (Table~\ref{tab:task-tests}).
+H4 is \emph{not interpretable}. The test returns no evidence of an interaction
+(Table~\ref{tab:task-tests}; \HEX$-$\NONE{} interaction $0.0$~pp, $p=1.00$), but the weak model
+solved only 2--5\% of tasks in every arm, with 90--93\% of its graded snapshots failing to build.
+An architecture effect on the weak model cannot show up when there is almost no success to lose,
+so the interaction is bounded by the floor, not by the absence of an effect. The GLMM interaction
+terms (\LAY$\times$weak $-1.68$, \HEX$\times$weak $-0.83$ log-odds, posterior SD 0.72 and 0.58) rest
+on the same 11 weak-model successes, and we do not interpret them. The weak model had passed the
+preregistered floor rule ($\ge$30\% success in \NONE) on the three pilot tasks, which were single
+tasks on an unmodified baseline. Under the cumulative protocol it broke the build within the first
+three tasks of every trajectory and almost never repaired it (\S\ref{sec:res-collection}). We
+return to this in \S\ref{sec:discussion} and \S\ref{sec:lessons}.
 
 \subsection{H2: Erosion}\label{sec:res-h2}
 
-The index used the components \RESULT{H2-metrics-used}. Components dropped for zero pooled spread:
-\RESULT{H2-metrics-dropped}. Table~\ref{tab:traj-tests} compares slopes, and
-Figure~\ref{fig:erosion}a shows the index over task position. H2 is \RESULT{H2-verdict}.
-Per-component slopes are given in the supplementary material (\RESULT{H2-component-table}). LMM architecture $\times$ task-index
-interaction: \RESULT{H2-lmm-interaction}.
+The index used all seven components (cycles, mean and max CBO, mean LCOM, mean distance from the
+main sequence, static warnings, duplicated lines); none was dropped for zero pooled spread.
+Table~\ref{tab:traj-tests} compares slopes, and Figure~\ref{fig:erosion}a shows the index over task
+position. H2 is \emph{not supported}. Neither structured variant eroded more slowly than \NONE: the
+mean \HEX{} slope equals the \NONE{} slope (0.0093 vs.\ 0.0091 index units per task, $p=0.99$), and
+the \LAY{} slope is about seven times larger (0.062), the opposite of the prediction, though not
+significantly so ($p_\text{Holm}=0.34$). The one significant contrast is \HEX{} vs.\ \LAY: the
+hexagonal code base eroded more slowly than the layered one (difference $-0.052$ per task,
+$p=0.010$, $p_\text{Holm}=0.031$). H2 did not predict a direction for this contrast, so we read it
+as a finding about the two architectures, not as support for H2.
+
+The secondary LMM agrees in direction: the \LAY$\times$task-index interaction is $0.082$ per task
+(95\% CI $[0.009, 0.154]$, $p=0.028$) and the \HEX$\times$task-index interaction $0.016$
+($p=0.66$). The LMM optimizer did not converge cleanly (gradient warning, estimate on the boundary
+of the parameter space), so we treat this $p$-value as indicative only. Two features of the data
+qualify the slopes. First, the weak-model trajectories contribute slopes fitted on only 2--6
+compiling snapshots, and one of them (\LAY, weak, R4: slope 0.27 over five tasks) raises the
+pooled \LAY{} mean. Restricted to the strong model (exploratory), the mean slopes are 0.013
+(\NONE), 0.050 (\LAY) and 0.015 (\HEX); \LAY{} exceeds both \NONE{} and \HEX{} with an exact
+permutation $p=0.057$ in each case (4 vs.\ 4 trajectories; smallest attainable $p=0.029$). At the
+last compiling snapshot the strong-model index stood at 0.48, 1.11 and 0.37 on average. Second,
+all 12 strong-model trajectories ended above zero, so the code eroded in every arm; architecture
+changed the rate.
+
+Table~\ref{tab:components} breaks the strong-model slopes down by component (exploratory). The
+\LAY{} slope is larger than the \HEX{} slope in all seven components and larger than the \NONE{}
+slope in six, all but maximum CBO; the largest contributions come from static warnings, package
+cycles, distance from the main sequence, LCOM and duplicated lines. Cycles appeared only in
+\LAY{} (in 6 strong-model and 3 weak-model snapshots). \HEX{} grew least in maximum coupling and
+gained no duplicated code at all: its CPD count stayed at zero in every compiling snapshot of every
+trajectory, while \LAY{} gained 40 and \NONE{} 17 duplicated lines on average.
 
 \begin{table}[t]\centering
 \caption{Trajectory-level tests: mean per-trajectory OLS slope per task for each arm of the
-contrast, and label-permutation tests stratified by model (10 vs.\ 10 trajectories). H2: erosion
-index. H6: own-architecture conformance violations.}
+contrast, and label-permutation tests stratified by model (8 vs.\ 8 trajectories). H2: erosion
+index. H6: own-architecture conformance violations; the last row is the one-sample sign-flip test
+of mean slope $\neq 0$ over the 16 \LAY{} and \HEX{} trajectories.}
 \label{tab:traj-tests}\label{tab:h2}
 \small
-\begin{tabular}{@{}lllll@{}}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
 Contrast & slope (first arm) & slope (second arm) & $p$ & $p_\text{Holm}$\\
 \midrule
 \multicolumn{5}{@{}l}{\emph{H2 erosion index, directional}}\\
-\LAY$-$\NONE & \RESULT{H2-lay-none-a} & \RESULT{H2-lay-none-b} & \RESULT{H2-lay-none-p} & \RESULT{H2-lay-none-pholm}\\
-\HEX$-$\NONE & \RESULT{H2-hex-none-a} & \RESULT{H2-hex-none-b} & \RESULT{H2-hex-none-p} & \RESULT{H2-hex-none-pholm}\\
-\HEX$-$\LAY & \RESULT{H2-hex-lay-a} & \RESULT{H2-hex-lay-b} & \RESULT{H2-hex-lay-p} & \RESULT{H2-hex-lay-pholm}\\
+\LAY$-$\NONE & 0.0615 & 0.0091 & 0.170 & 0.341\\
+\HEX$-$\NONE & 0.0093 & 0.0091 & 0.993 & 0.993\\
+\HEX$-$\LAY  & 0.0093 & 0.0615 & 0.010 & 0.031\\
 \midrule
-\multicolumn{5}{@{}l}{\emph{H6 conformance violations, two-sided}}\\
-\HEX$-$\LAY & \RESULT{H6-hex-slope} & \RESULT{H6-lay-slope} & \RESULT{H6-hex-lay-p} & n/a\\
+\multicolumn{5}{@{}l}{\emph{H6 conformance violations}}\\
+\HEX$-$\LAY{} (two-sided) & 0.288 & 1.213 & 0.553 & n/a\\
+slope $>0$, \LAY{} and \HEX{} & \multicolumn{2}{c}{0.751 [0.078, 1.810]} & 0.0625 & n/a\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]\centering
+\caption{Exploratory: erosion components for the strong model (4 trajectories per arm). Left: mean
+change from baseline to the last compiling snapshot, in raw units. Right: mean standardized slope
+per task ($\times 100$), i.e.\ each component's contribution to the index slope (the index slope is
+the mean over the seven components).}
+\label{tab:components}
+\footnotesize
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+ & \multicolumn{3}{c}{$\Delta$ baseline $\rightarrow$ last} & \multicolumn{3}{c}{standardized slope $\times 100$}\\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+Component & \NONE & \LAY & \HEX & \NONE & \LAY & \HEX\\
+\midrule
+package cycles & 0.00 & 0.25 & 0.00 & 0.0 & 4.5 & 0.0\\
+mean CBO & 0.18 & 0.26 & 0.05 & $-0.7$ & 1.0 & $-0.3$\\
+max CBO & 10.75 & 10.00 & 5.75 & 7.7 & 7.2 & 4.4\\
+mean LCOM & $-0.18$ & 0.41 & 0.53 & $-4.1$ & 4.3 & 2.7\\
+mean distance $D$ & $-0.07$ & 0.08 & $-0.04$ & $-3.6$ & 4.6 & $-2.5$\\
+static warnings & 33.75 & 45.00 & 29.00 & 7.9 & 10.2 & 5.9\\
+duplicated lines & 17.25 & 39.75 & 0.00 & 1.7 & 3.3 & 0.0\\
+\midrule
+index slope ($\times 100$) & & & & 1.3 & 5.0 & 1.5\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[t]\centering
-\begin{tabular}{@{}cc@{}}
-\maybefig{figures/erosion_index.pdf}{0.46\textwidth} &
-\maybefig{figures/conformance.pdf}{0.46\textwidth}\\
-\small (a) erosion index $E_{t,k}$, mean and 95\% band & \small (b) own-architecture violations (\LAY, \HEX)
-\end{tabular}
-\caption{Erosion and conformance over task position, per architecture and model. Placeholders
-until unblinding.}
+\includegraphics[width=0.86\textwidth]{figures/fig_erosion.pdf}\\[-2pt]
+\small (a) erosion index $E_{t,k}$, mean and 95\% band (normal approximation)\\[4pt]
+\includegraphics[width=0.86\textwidth]{figures/fig_conformance.pdf}\\[-2pt]
+\small (b) own-architecture rule violations (\LAY, \HEX)
+\caption{Erosion and conformance over task position. Each point averages the trajectories (both
+models) whose snapshot compiles at that position. After position~3 almost all weak-model
+trajectories have dropped out (one \NONE{} trajectory compiles occasionally), so later positions
+mostly reflect the strong model, and the set of contributing trajectories changes from point to
+point. In (b), the \HEX{} peaks at positions 16--17 and 22--23 come from a single trajectory
+(strong model, R3) at positions where the other \HEX{} trajectories did not compile; the other three
+strong-model \HEX{} trajectories had zero violations throughout.}
 \label{fig:erosion}\label{fig:conformance}
 \end{figure}
 
 \subsection{H6: Conformance}\label{sec:res-h6}
 
-Own-architecture violations changed by \RESULT{H6-lay-slope} per task in \LAY{} and
-\RESULT{H6-hex-slope} in \HEX{} (difference \RESULT{H6-hex-lay-diff}, $p=$
-\RESULT{H6-hex-lay-p}; Figure~\ref{fig:erosion}b). H6 is \RESULT{H6-verdict}. The rules violated
-most often were \RESULT{H6-top-rules}.
-\TODO{analyze.py tests only the HEX-vs-LAY slope difference for H6; add the preregistered
-one-sample test of slope $>0$ per arm, labeled as such.}
+Own-architecture violations rose by 1.21 per task in \LAY{} and 0.29 in \HEX{} on average
+(difference $-0.93$, $p=0.553$; Table~\ref{tab:traj-tests}, Figure~\ref{fig:erosion}b). Both mean
+slopes are positive, but the one-sample test of a non-zero mean slope gives $p=0.0625$ (separately:
+\LAY{} $p=0.125$, \HEX{} $p=1.00$). H6 is therefore \emph{not supported} at $\alpha=0.05$: the trend
+is upward, and \LAY{} and \HEX{} do not differ. The test had almost no room to succeed. Only five
+of the 16 trajectories ever had a violation in a compiling snapshot, and with five non-zero slopes
+$p=0.0625$ is the smallest value the two-sided sign-flip test can return. The violations were
+concentrated. In \LAY, three of four strong-model trajectories ended with violations (16, 39 and 6)
+and one weak-model trajectory reached 33 within five tasks. In \HEX, only one trajectory (strong,
+R3) ever violated a rule, ending at 46. The rules violated most often were, in \LAY,
+\code{fhirModelOnlyInWeb} (HAPI FHIR types outside the web layer; 17 snapshots, 3 trajectories)
+and \code{layersAreRespected} (9 snapshots, 2 trajectories), and in \HEX{}
+\code{applicationDependsOnlyOnDomainAndItself} and \code{fhirModelOnlyInWebAdapter} (6 snapshots
+each, both in the one trajectory).
 
 \subsection{Exploratory analyses}\label{sec:res-explore}
 
-These analyses were preregistered as exploratory. \emph{Regressions:}
-\RESULT{regression-rate-by-arm} of graded attempts broke at least one previously passing test.
-\emph{Localization:} \RESULT{localization-summary} (files read before the first edit vs.\ files
-where the change landed). \emph{Qualitative coding} of a stratified sample of failed attempts:
-\RESULT{qualitative-summary}.
+The registration lists regressions, localization and qualitative coding as exploratory
+(PREREGISTRATION \S6.6). We add some descriptive breakdowns by model, because the weak arm's floor
+makes pooled numbers hard to read. None of these were planned as confirmatory tests.
+
+\emph{Build failures.} For the strong model, the graded snapshot failed to build in 11.5\% of
+\NONE, 15.6\% of \LAY{} and 30.2\% of \HEX{} attempts (\HEX$-$\NONE{} $+18.8$~pp per task, 95\% CI
+$[9.4, 29.2]$, sign-flip $p=0.001$, uncorrected). The grader also compiles the agent's test
+sources. Counting only main code that does not compile (the erosion measurement), the rates are
+10.4\%, 10.4\% and 22.9\%. The \HEX{} failures cluster late: every strong-model \HEX{} trajectory failed
+to build at T17, T18 and T19. In one of them (R1) the build stayed broken from T17 to T24, which ended the run of
+successes in that trajectory.
+
+\emph{Regressions.} Attempts that broke at least one previously passing test were rare: 2, 6 and
+5 of 96 strong-model attempts in \NONE, \LAY{} and \HEX{} (4, 0 and 0 for the weak model, whose
+snapshots rarely built). The number of regressed tests was 21, 161 and 54 in the strong model, but
+it is dominated by single attempts: two consecutive \LAY{} attempts (R1, T19 and T20) account for
+122 of the 161.
+
+\emph{Change footprint.} The strong model modified 4.8, 6.7 and 9.5 files per attempt on average
+in \NONE, \LAY{} and \HEX{}, i.e.\ about twice as many in \HEX{} as in \NONE, at the same token cost
+and success rate.
+
+\emph{Conformance by trajectory.} Three of four strong-model \HEX{} trajectories never violated any
+of their own rules in any compiling snapshot. Three of four strong-model \LAY{} trajectories ended
+with violations.
+
+\emph{Use of version control by the agent.} About half of the transcripts (279 of 576) contain
+\code{git stash}, \code{git checkout} or \code{git reset}. Agents used \code{git stash} to compare
+test results with and without their change. One agent removed a graded commit from the history
+(deviation~4).
+
+\emph{Localization and qualitative coding.} The localization analysis (files read before the first
+edit vs.\ files changed) and the qualitative coding of failed attempts have not been carried out
+yet. They will be reported with the released transcripts. \TODO{run or explicitly defer the
+localization and qualitative-coding analyses before submission.}
 
 % =====================================================================================
 \section{Discussion}\label{sec:discussion}
 
-\TODO{Write after unblinding. Keep to what the preregistered tests support. The skeleton below
-lists what each outcome pattern would need to address. No claims are made here.}
+\paragraph{Summary.} Of the five interpretable preregistered hypotheses, none was supported.
+Architecture did not change success (H3) or token cost (H1, H5) in a way this design could detect.
+The structured variants did not erode more slowly than the unstructured one (H2), and conformance
+violations did not significantly accumulate (H6). The capability interaction (H4) is not
+interpretable. Two results nevertheless stand out. The hexagonal code base eroded significantly more
+slowly than the layered one, and the layered one eroded fastest of all three. And the agent
+touched about twice as many files in \HEX{} without paying for it in tokens or success.
 
-\paragraph{If architecture protects (lower erosion slope in \LAY/\HEX, success not lower).}
-\begin{itemize}[itemsep=1pt]
-  \item Which erosion components carry the effect: cycles and coupling, or warnings and
-    duplication? The baselines differ in size and structure, so a difference in components that
-    scale with code size needs care.
-  \item Is the protection bought with cost (H1)? Report the price per task and per point of
-    erosion avoided.
-  \item Did conformance hold (H6 slope near zero), or did agents keep the metrics flat while
-    breaking layer rules?
-  \item Relation to \citep{archequalizer2026,hexdebt2025}: does the code's structure act as an
-    implicit specification?
-\end{itemize}
+\paragraph{No success or token penalty for a capable agent.} Our predecessor
+study~\citep{pisarewski2026indirection} found an indirection tax: on small Python repositories and
+single tasks, ports and adapters lowered success, more so for weaker models. Here, a stronger
+model working cumulatively on a larger Java service showed no such penalty. The structured variants
+cost the agent more edits (Table~\ref{tab:h1sec}), but not more tokens, calls or failures. Several
+differences between the studies could explain this: model capability, language and framework
+conventions (Spring's layered and hexagonal idioms are common in training data), size, and naming
+(the predecessor traced its tax mainly to opaquely named adapter files, whereas our variants
+follow a well-known reference style). Our design cannot separate them. Trivedi and
+Schmitt~\citep{trivedi2026cleanliness} likewise find that a code property can leave pass rates
+unchanged while shifting effort, and Stoyanov's single-system comparison~\citep{stoyanov2026hexagonal}
+reported a slower hexagonal variant, whereas our secondary wall-time measure points the other way.
+Two cautions apply. First, a null result here is a limited one. For the strong model, the CI for
+\HEX$-$\NONE{} success runs from $-12.5$ to $+10.4$~pp, and most attempts used the full 60-call budget, so
+the token measure is censored: within a fixed budget, tokens mostly reflect context size per call,
+and a variant that needs more calls cannot show it. Second, the study has one domain and one capable
+model.
 
-\paragraph{If the agent breaks the architecture (H6 slope $>0$, H2 not supported).}
-\begin{itemize}[itemsep=1pt]
-  \item Which rules break first (e.g.\ HAPI types leaking into \code{domain}/\code{service},
-    adapters calling services directly)? Link to the qualitative coding.
-  \item Is the structural cost of \HEX{} still paid (H1) while its benefits erode? That is the
-    worst case for practice.
-  \item Interaction with capability (H4) and stratum (H5): do cross-cutting and integration tasks
-    drive the violations?
-  \item Implications for guardrails (enforced ArchUnit rules, instructions). This motivates
-    Study~2.
-\end{itemize}
+\paragraph{Architecture changed the fate of the code.} Erosion grew in every arm: all 12
+strong-model trajectories ended with a higher index than they started with, and static warnings
+rose in every one of them. This is consistent with the notion of agentic
+entropy~\citep{agenticentropy2026}: agents that solve tickets one at a time leave a structurally
+worse code base behind. Architecture modulated the rate. The layered variant eroded fastest on
+almost every component, including duplication, warnings and the only package cycles in the study.
+Its conformance broke in three of four strong-model trajectories, mostly by HAPI FHIR types leaking
+out of the web layer. The hexagonal variant held its structure: no duplicated code was added, three
+of four strong-model trajectories never violated a hexagon rule, and its index slope matched that
+of \NONE.
 
-\paragraph{If results are mixed or inconclusive.}
-\begin{itemize}[itemsep=1pt]
-  \item Use the sensitivity analysis: effects below about 10--15 pp are outside what this
-    design can detect.
-  \item Compare with the predecessor study's single-task tax, and say whether cumulative,
-    larger-scale work changes the picture.
-\end{itemize}
+We can offer only hypotheses for this difference. In \HEX{} the boundaries are visible in the code
+the agent reads. Ports are interfaces, adapters are named as such, and the domain has its own model
+without HAPI types, so an agent that imitates nearby code follows the boundary. In \LAY{} the
+boundaries are soft: controller, service and repository are all Spring beans, HAPI types are
+available everywhere on the classpath, and nothing local signals that a service should not return
+a FHIR resource. The agent can take the shortcut without noticing that it crosses a layer. This
+reading fits \emph{Architecture as Capability Equalizer}~\citep{archequalizer2026}, which finds
+that explicit architectural specifications help agents. A hexagonal code base may act as an
+implicit specification. Testing this needs the localization and qualitative analyses, which are
+still to be done.
+
+There is a price, and alternative explanations. \HEX{} attempts by the strong model more often left
+a project that did not build (30\% vs.\ 11\% in \NONE; exploratory). A change in \HEX{} has to be
+threaded consistently through more places (domain model, port, service, mapper, adapter), which
+gives more chances to stop halfway when the call budget runs out. Non-compiling snapshots are left
+out of the slope fits, so if the snapshots that fail to build in \HEX{} are also the most eroded
+ones, the \HEX{} slope is flattered. Some components are means over classes, and \HEX{} has about
+four times as many classes as \NONE, so a local change moves its means less. The duplication,
+warning and conformance counts are not means and show the same pattern, which makes a purely
+mechanical explanation less likely, but it remains a confound of the size difference that is part
+of the treatment (\S\ref{sec:threats}).
+
+\paragraph{The weak model and the floor.} The weak model reproduces the floor effect of the
+predecessor study, despite a preregistered floor rule designed to prevent it. The rule was checked
+on three pilot tasks, each a single change to a fresh baseline, where Qwen3-Coder-30B passed. Under
+the cumulative protocol the model broke the build within the first three tasks of every trajectory
+and almost never recovered, so most of its 288 attempts started from a broken project. The lesson
+is that a capability check must use the real protocol, here a short sequence of cumulative tasks,
+and that the capability question needs a mid-capability model whose success is clearly above the
+floor in the cumulative setting. The preregistered fallback, Qwen3-Coder-Next, is a candidate.
+
+\paragraph{Next steps.} Phase~2 repeats the design in a second domain (order management), where
+FHIR's external data model is absent. It will test domain generality (H7). It can also state the
+\HEX{} vs.\ \LAY{} erosion difference, found here without a directional prediction, as a confirmatory
+directional hypothesis. It should replace the weak model with a mid-capability one. Study~2 (planned
+in \code{STUDY2-GUARDRAILS.md}) asks whether Copilot-style guardrails (architecture instructions,
+ArchUnit and static checks run as a hook before submit, self-review) control agentic entropy. Our
+results suggest two concrete questions for it: whether enforcement closes the gap between soft
+layered boundaries and explicit hexagonal ones, and whether build-and-check feedback reduces the
+non-compiling attempts that \HEX{} produced.
 
 % =====================================================================================
 \section{Threats to Validity}\label{sec:threats}
 
 We follow the usual classification~\citep{wohlin2012experimentation}. The first items were stated
-in the preregistration (\S7.1). The rest were identified while running the study.
+in the preregistration (\S7.1). The rest were identified while running and analyzing the study.
 
 \paragraph{Construct validity.}
 \emph{Size is part of the treatment.} \HEX{} has 1.81$\times$ the LOC and 3.9$\times$ the files of
 \NONE. We report the profile and do not equalize it, so effects of architecture cannot be
-separated from the code volume the style implies. \emph{Erosion index.} The index aggregates
+separated from the code volume the style implies. This also affects the erosion index: mean CBO,
+mean LCOM and mean distance from the main sequence are averaged over more classes or packages in
+\HEX, so the same local change moves them less. \emph{Erosion index.} The index aggregates
 established metrics with equal weight. Some components, such as distance from the main sequence,
-depend on package structure and may behave differently by style. We therefore report every
-component separately. \emph{Conformance} exists only for \LAY{} and \HEX. \emph{Cost} includes
-cached prompt tokens, which are cheap in money but still measure how much context the agent
-processes. We report recomputed USD as a secondary measure. \emph{Step-limit censoring.} Cost is
-right-censored at 60 calls. In the shakedown the strong model used the full budget in 18 of 24
-tasks. Censoring lowers the power of H1 and compresses differences between arms. It does not bias
-the permutation test under the null. The secondary analysis on successful attempts is only
-partly a remedy, because success is itself an outcome. \emph{Excluded snapshots.} Non-compiling
-snapshots are left out of the slope fits. If arms differ in compile rates, slopes describe
-different subsets. We report the counts per arm.
+depend on package structure and may behave differently by style. We therefore report the
+components separately (Table~\ref{tab:components}). \emph{Conformance} exists only for \LAY{} and
+\HEX{}, and its rules differ between them, so violation counts are not on a common scale.
+\emph{Cost} includes cached prompt tokens, which are cheap in money but still measure how much
+context the agent processes. We report recomputed USD as a secondary measure. \emph{Step-limit
+censoring.} Cost is right-censored at 60 calls, and the censoring is heavy: 55.7\%, 60.4\% and
+63.5\% of attempts in \NONE, \LAY{} and \HEX{} hit the limit (strong model 57.3\%, 64.6\%, 65.6\%;
+weak model 54.2\%, 56.2\%, 61.5\%). Censoring does not bias the permutation test under the null,
+but it lowers the power of H1 and compresses differences between arms, and the limit itself shapes
+success. The null result for H1 means ``no difference in tokens within a 60-call budget'', not
+``no difference in the work needed''. The secondary analysis on successful attempts is only partly
+a remedy, because success is itself an outcome. \emph{Excluded snapshots.} Non-compiling snapshots
+are left out of the slope fits. They are frequent (96, 96 and 111 of 192 per arm, mostly from the
+weak model) and, for the strong model, twice as frequent in \HEX{} (22 vs.\ 10 and 10 of 96). The
+slopes therefore describe different subsets, and the weak-model slopes rest on 2--6 points each.
 
 \paragraph{Internal validity.}
 \emph{Construction bias.} One author, assisted by AI agents, built all variants and tasks, and no
@@ -816,26 +1068,49 @@ published size profiles and full release of all materials. AI-built variants may
 to what models find natural than human-written code would be. \emph{Task authoring.} Tickets are
 behavior-only and graded by identical black-box tests, but nobody else reviewed them.
 \emph{Provider drift.} Hosted models can change silently, and providers can re-route requests. We
-pinned model IDs, interleaved all arms in every worker, and logged the provider per call. Drift
-during the collection window affects all arms equally but could still interact with
-architecture. \emph{Dependencies between tasks.} A failed task can make later tasks harder in that
-trajectory. We report the preregistered \code{dependency\_failed} sensitivity analysis.
+pinned model IDs, interleaved all arms in every worker, and logged the provider per call: a single
+provider served each model throughout. Drift during the 34-hour window would affect all arms
+equally but could still interact with architecture. \emph{Host interruption.} Collection stopped
+for about 5.4 hours, and the remaining R4 attempts ran in per-model workers. Each worker still
+interleaved the three architectures, so architecture comparisons within a model are unaffected;
+only the interleaving across models was lost for those attempts. The interrupted attempt was rolled back and
+rerun from its last commit. \emph{Dependencies between tasks.} Tasks were designed to be
+independent, so the preregistered \code{dependency\_failed} covariate is zero throughout and the
+sensitivity analysis is uninformative. The real dependency in a cumulative design is the shared
+code base: a broken build blocks all later tasks in its trajectory. This dominated the weak model
+and also affected the strong model (one \HEX{} trajectory stayed unbuildable from T17 to T24).
+Success rates of later tasks thus partly measure the ability to repair earlier damage.
+\emph{Agent access to version control.} Agents could run git in the workspace, and one rewrote the
+branch history. Grading and (after deviation~4) erosion use the commit objects recorded by the
+harness, so no measurement depends on the agent leaving history intact.
 
 \paragraph{External validity.}
 \emph{Single domain in Phase 1.} Results come from one application. FHIR is a public standard that
 models have probably seen often, and its external model makes the placement of mapping code
-especially salient. Phase~2 (order management) tests generality (H7). We claim nothing about other
-languages, frameworks or much larger systems. \emph{Model choice.} Two open-weights models in one
-scaffold, chosen partly for cost, with the strong model run without extended thinking.
-Frontier proprietary agents with richer tools may behave differently, and with two models H4 is a
-contrast between two points, not a capability curve. \emph{Scaffold.} A bash-only loop with a
-60-call budget is deliberately minimal. Products with planning, retrieval or self-review steps
-may close or widen any gap.
+especially salient; the \LAY{} violations we observed were mostly about exactly that. Phase~2
+(order management) tests generality (H7). We claim nothing about other languages, frameworks or
+much larger systems. \emph{Effectively one model.} With the weak model at the floor, every
+substantive finding rests on one open-weights model, run without extended thinking in one scaffold.
+Frontier proprietary agents with richer tools may behave differently, and nothing can be said about
+how effects change with capability. \emph{Scaffold.} A bash-only loop with a 60-call budget is
+deliberately minimal. Products with planning, retrieval, linting or self-review steps may close or
+widen any gap.
 
-\paragraph{Conclusion validity.} 24 tasks give adequate power only for differences of about
-15 pp or more (\S\ref{sec:analysis}). H5 per-stratum tests have six tasks each and are
-descriptive. Contamination is limited by keeping all materials private until data collection
-ends and by running without network access. The materials will become public afterwards.
+\paragraph{Conclusion validity.}
+\emph{Reduced sample.} The cost rule dropped R5 as preregistered, so each arm has 8 trajectories and
+each task 8 attempts per arm instead of 10. The registered simulation gives 4-run power of 0.88
+(0.77 after Holm) for a 15~pp success difference, against 0.93 (0.86) with five runs
+(\S\ref{sec:analysis}). \emph{Realized sensitivity is lower still.} The simulation assumed a mean
+success near 75\% with two informative models. The realized mean was 30\%, and the weak arm
+contributed almost no information, so the effective sample for H3 is about half the nominal one.
+The CIs in Table~\ref{tab:task-tests} are the best guide to what is excluded. \emph{Trajectory-level
+tests} have 8 vs.\ 8 trajectories, and the H6 one-sample test could not go below $p=0.0625$ with
+these data (\S\ref{sec:res-h6}). \emph{Mixed models.} Both LMMs reported convergence problems, so
+their $p$-values are indicative only. \emph{Multiplicity.} Holm correction is applied within each
+hypothesis, not across hypotheses or across the secondary and exploratory analyses; the latter are
+descriptive and need confirmation. H5 per-stratum tests have six tasks each and are descriptive.
+\emph{Contamination} is limited by keeping all materials private until data collection ended and
+by running without network access. The materials will become public afterwards.
 
 % =====================================================================================
 \section{Lessons for Running Agent Experiments on a Shoestring}\label{sec:lessons}
@@ -843,14 +1118,15 @@ ends and by running without network access. The materials will become public aft
 The study ran on one laptop with Docker and a budget of USD~30. Most of the engineering effort
 went into problems that a well-funded lab may never see but that can silently bias a low-budget
 experiment. We record them because each one would have turned infrastructure behavior into
-apparent agent behavior.
+apparent agent behavior. Lessons 1--8 were learned before registration, 9--11 during Phase~1.
 
 \paragraph{1. Free endpoints are not infrastructure.} We first planned to use free
 (\code{:free}) endpoints. \code{qwen/qwen3-coder:free} was withdrawn on 2026-10-11, and
 \code{poolside/laguna-s-2.1:free} was throttled for many minutes per call. Both were dropped
 before any confirmatory data in favor of the paid endpoints of the same models. With
 provider-side prompt caching the paid runs were cheap: 83\% of prompt tokens in the pilot and
-96--97\% in the shakedown were served from cache, and Phase~1 cost about USD~0.04 per attempt.
+96--97\% in the shakedown and 91.7\% in Phase~1 were served from cache, and Phase~1 cost USD~24.25
+in total, about USD~0.04 per attempt.
 Open weights mean the study stays reproducible when endpoints change.
 
 \paragraph{2. Providers may ignore reasoning settings.} With extended thinking enabled, the
@@ -899,13 +1175,40 @@ baseline, 3--4 in the others). Without the desugaring step (\S\ref{sec:measures}
 cohesion would have been computed on an incomplete set of types that differs by variant. We pinned tool versions in a separate image tag, checked release
 digests, and verified that CK reports no errors on the baselines.
 
+\paragraph{9. Test the capability floor under the real protocol.} Our floor rule checked the weak
+model on three single tasks against a fresh baseline, and it passed. In the cumulative protocol the
+same model broke the build within three tasks in all 12 trajectories and almost never repaired it,
+which made H4 uninterpretable. The predecessor study had the same problem. A floor check should run
+a short cumulative sequence (several tasks, each on top of the last) and require a clear margin
+above the floor, so that a mid-capability model is chosen.
+
+\paragraph{10. The agent shares your version control.} About half of the transcripts contain
+\code{git stash}, \code{checkout} or \code{reset}, and one agent ran \code{git reset --hard} and
+removed the previous task's commit from the branch. The harness must record the commit object it
+grades and measure exactly that object later, rather than walk the history the agent can rewrite.
+
+\paragraph{11. Make outcome-blind decisions final.} The cost rule fired once, as designed, and the
+host stopped hours later. On restart, a runner that re-evaluated the rule from scratch could have
+reached a different decision on more data. The orchestrator now records the decision and treats it
+as final across restarts, and the restart itself is logged as a deviation.
+
 % =====================================================================================
 \section{Conclusion}\label{sec:conclusion}
 
 We set out to test, under preregistered control, whether layered and hexagonal architecture help
 or hinder AI coding agents that evolve a Java service over many tasks, and whether the agents
-preserve the architecture. \RESULT{conclusion-summary}. \TODO{Two to three sentences after
-unblinding, limited to supported hypotheses; state Phase 2 and Study 2 (guardrails) as next steps.}
+preserve the architecture. For a capable open-weights agent working through 24 cumulative tickets
+on one FHIR service, architecture changed neither task success nor token cost, although the
+hexagonal variant required changes to about twice as many files. None of the preregistered
+directional predictions was supported: the structured variants did not erode more slowly than the
+unstructured one, and conformance violations did not significantly accumulate. Architecture did
+shape what happened to the code: the layered code base eroded fastest, and the hexagonal one eroded
+significantly more slowly than the layered one and mostly kept its own rules, at the price of more
+attempts that left the project unbuildable (exploratory). These results come from one domain, one
+capable model and four runs, and the weaker model was at the floor. Phase~2 tests the same design in
+an order-management domain with a mid-capability second model, and Study~2 tests whether
+Copilot-style guardrails (architecture instructions, enforced ArchUnit checks, self-review) slow
+the erosion we observed.
 
 \paragraph{Data availability.} All materials are released under MIT (code) and CC-BY 4.0 (text,
 data): the three variants, specification and clarifications, tasks, hidden tests, harness, agent
