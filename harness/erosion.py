@@ -73,9 +73,28 @@ def git(repo: Path, *args: str) -> str:
 
 
 def commits(repo: Path) -> list[tuple[str, str]]:
-    """(sha, subject) in task order: first-parent history from the root commit."""
+    """(sha, subject) in task order.
+
+    The authoritative snapshot of each task is the commit that was graded, recorded in the run's
+    results.jsonl. It normally equals first-parent history, but an agent can rewrite history inside
+    its sandbox (e.g. `git reset --hard` in a later task). The graded commit object still exists, so
+    it is measured from results.jsonl. The baseline comes from the root commit.
+    """
     out = git(repo, "log", "--first-parent", "--reverse", "--format=%H%x09%s", "HEAD")
-    return [tuple(line.split("\t", 1)) for line in out.splitlines() if line.strip()]  # type: ignore[misc]
+    hist = [tuple(line.split("\t", 1)) for line in out.splitlines() if line.strip()]
+    results = repo.parent.parent / "results.jsonl"
+    if not results.exists():
+        return hist  # type: ignore[return-value]
+    traj = repo.parent.name
+    graded = {}
+    for line in results.read_text().splitlines():
+        if line.strip():
+            r = json.loads(line)
+            if r.get("trajectory") == traj and r.get("commit"):
+                graded[r["task_index"]] = (r["commit"], r["task"])
+    if not graded:
+        return hist  # type: ignore[return-value]
+    return [hist[0]] + [graded[i] for i in sorted(graded)]  # type: ignore[list-item]
 
 
 def image_id(image: str) -> str:
