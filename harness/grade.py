@@ -76,13 +76,14 @@ def grade(
     task: dict,
     previous_tasks: list[dict],
     image: str,
+    ref: str = "HEAD",
 ) -> GradeResult:
     """`task`/`previous_tasks` are parsed meta.yaml dicts."""
     tasks_dir = ROOT / domain / "hidden-tests"
     with tempfile.TemporaryDirectory(prefix="grade-") as tmp:
         work = Path(tmp)
         # snapshot = committed state only (what the agent left behind, minus build output)
-        subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", "-o", str(work / "app.tar"), "HEAD"], check=True)
+        subprocess.run(["git", "-C", str(repo), "archive", "--format=tar", "-o", str(work / "app.tar"), ref], check=True)
         (work / "app").mkdir()
         subprocess.run(["tar", "-xf", str(work / "app.tar"), "-C", str(work / "app")], check=True)
 
