@@ -92,7 +92,9 @@ tended to accumulate (H6, not significant), with no difference between \LAY{} an
 exploratory analyses, three of four hexagonal trajectories of the capable model never violated
 their own rules, but hexagonal attempts more often left a project that did not build (30\% vs.\
 11\% in \NONE). The weaker model failed at the floor (2--5\% success), so the capability
-interaction (H4) cannot be interpreted. The whole experiment ran on a laptop with Docker and cost
+interaction (H4) cannot be interpreted. Post-hoc checks, not preregistered, showed that all 24
+tasks are solvable in every variant, that re-grading all 403 failures changed no outcome, and that
+the capable model's successes are genuine implementations. The whole experiment ran on a laptop with Docker and cost
 USD~24.25 in API fees. We release all variants, tasks, hidden tests, harness, transcripts and
 per-task snapshots.
 \end{abstract}
@@ -161,7 +163,7 @@ capability question (H4) remains open.
   \item \textbf{Preregistration.} Hypotheses, tests, sample size and the analysis script were
     frozen (git tag \code{prereg-v1}) and registered on OSF before data collection. The design
     and methods sections of this paper were drafted before the results were known. Four
-    deviations are logged and reported.
+    deviations and a set of post-hoc validity checks are logged and reported.
   \item \textbf{Open, reproducible, cheap.} Open-weights models, an offline Docker sandbox and an
     unmodified public scaffold (mini-swe-agent~2.4.6). The full experiment cost USD~24.25,
     about USD~0.04 per attempt. All materials, transcripts and snapshots are released.
@@ -358,10 +360,12 @@ I integration & T04 T08 T12 T16 T20 T24 & T04: POST critical glucose Observation
 FAIL\_TO\_PASS tests fail on every baseline. Guard tests (PASS\_TO\_PASS) pass on the baseline and stop
 over-reaching solutions. For integration tasks the grader starts the application with the relevant
 property pointing to a mock server controlled by the test. \code{harness/validate\_tasks.py}
-checked on all three baselines that each task's FAIL\_TO\_PASS tests fail and the baseline suite
-passes.
-\TODO{attach the 24-task validation log; data/validate\_phase1.log covers 12 tasks only. No
-reference solutions are in the repository; do not claim them.}
+checks on each baseline that a task's FAIL\_TO\_PASS tests fail, its guard tests pass and the
+baseline suite passes. Before registration this check was logged for 12 tasks
+(\code{data/validate\_phase1.log}). The preregistration also planned reference solutions, but only
+a partial one (12 tasks, \NONE) existed at registration. The full validation of all 24 tasks and
+reference solutions for all three variants were completed after data collection
+(\S\ref{sec:res-validity}).
 
 \paragraph{Dependencies and superseded tests.} Tasks were designed to be independent: 22 have no
 dependency, and two have a soft one that their hidden tests do not need (T19 on T03, T20 on T06).
@@ -574,7 +578,8 @@ protocol was registered on 2026-10-13 at 09:25 UTC with the OSF Preregistration 
 three pilot tasks P1--P3 in all six cells (18 attempts) and one shakedown trajectory over T01--T24
 (\NONE, strong model). Both are excluded from every analysis. The models, settings, sandbox
 images, tasks, hidden tests and the primary tests did not change after the freeze. Four deviations
-are logged in DEVIATIONS.md. None changes a primary test.
+from the protocol are logged in DEVIATIONS.md. None changes a primary test. The post-hoc validity
+checks run after data collection are logged there as well and reported in \S\ref{sec:res-validity}.
 \begin{enumerate}[itemsep=1pt]
   \item \emph{Parallel workers} (2026-10-13). Execution ran in two to three parallel workers, one
     per run, instead of a single queue over all 30 trajectories, because a sequential queue would
@@ -950,6 +955,90 @@ edit vs.\ files changed) and the qualitative coding of failed attempts have not 
 yet. They will be reported with the released transcripts. \TODO{run or explicitly defer the
 localization and qualitative-coding analyses before submission.}
 
+\subsection{Post-hoc validity checks}\label{sec:res-validity}
+
+After data collection we ran four checks on the measurement itself (Table~\ref{tab:validity}).
+None was preregistered. All are logged in DEVIATIONS.md (2026-10-15), and none changes a
+confirmatory result. The preregistration had planned reference solutions for every task. At
+registration only a partial one existed (12 tasks, \NONE), and the complete set was built only
+after data collection. Two Phase~1 results prompted the checks: no agent attempt solved T18 or
+T23, and, while the reference solutions were being built, the grader produced false failures under
+heavy Docker load.
+
+\begin{table}[t]\centering
+\caption{Post-hoc validity checks (not preregistered; DEVIATIONS.md, 2026-10-15).}
+\label{tab:validity}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{4.3cm}X@{}}
+\toprule
+Check & Scope & Result\\
+\midrule
+Reference solutions & T01--T24, built cumulatively in each of the three variants, graded by the experiment's grader & 24/24 tasks pass in all three variants, 0 regressions; no hidden test is faulty\\
+Baseline validation & 24 tasks $\times$ 3 baselines & 72/72 OK (FAIL\_TO\_PASS fail, guards and baseline suite pass) after re-running two OOM-killed checks\\
+Re-grading & all 403 recorded failures, re-graded at low load & 0 outcomes changed; built, started and task tests passed identical in every case\\
+Quality review & 38 successful attempts (27 strong, 11 weak), stratified random sample & strong: 26 genuine, 1 partial, 0 gaming; weak: 5 / 4 / 2; architecture fits in 21 of 24 \LAY/\HEX{} attempts\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Reference solutions.} Three AI agents, one per variant, implemented T01--T24 in task
+order, each task on top of the previous one, as the experimental agents do. Every commit was graded
+with the experiment's grader against the hidden tests of all tasks so far
+(\code{harness/grade\_one.py}; \code{data/reference/}). All 24 tasks passed in all three variants
+with no regressions. No hidden test demands something its ticket or the specification does not
+say, and no two tests contradict each other. T18 (paging) is solvable with a straightforward
+implementation that passed on its first grading. The pitfalls lie in details the ticket states: the
+server must accept its own paging parameter in the \code{next} link while still rejecting unknown
+parameters, and must emit no \code{next} link on an exactly full last page. T23 (AuditEvent)
+contains a library trap. HAPI's JSON encoder strips \code{/\_history/<version>} from references by
+default, so an implementation that builds the versioned reference the ticket requires
+(\code{Patient/12/\_history/2}) still serializes \code{Patient/12}, and 5 of the 7 T23 tests fail.
+The fix is one parser option (\code{setDontStripVersionsFromReferencesAtPaths}). The test is
+correct, but the cause is visible only in the serialized JSON. One ticket has a wording flaw: T21
+lists \code{corrected} as an allowed successor of \code{final}, but \code{corrected} lies outside the
+supported status subset and is rejected with 400 by clarification C11. The hidden test does not
+exercise it.
+
+\paragraph{Baseline validation.} We ran the task validation for all 24 tasks on all three
+baselines (\code{data/validate\_all24.log}). All 72 checks passed. Two checks (\HEX, T22 and
+T24) first failed because the application's JVM in the grading container was killed for lack of
+memory while three reference builders shared the Docker VM. Re-run at low load, both passed.
+
+\paragraph{Re-grading.} The false failures under load looked like this: the application's JVM died
+silently during the run, and every test then failed with a refused connection, or dozens of
+unrelated tests failed and passed again on an identical re-run. Phase~1 graded with two to three
+workers in parallel, so the same could have happened there. We therefore re-graded all 403 attempts
+recorded as failures, with the same grader at low load (\code{harness/regrade.py},
+\code{data/phase1/regrade.jsonl}). No outcome changed. Whether the snapshot built, whether the
+application started and how many task tests passed were identical in every case. All 10 recorded
+``application did not start'' cases show real exceptions in agent code. Load can only produce false
+failures, not false passes, so the 173 successes were not re-graded. Phase~1 grading was not affected
+by the flakiness, and no sensitivity analysis is needed.
+
+\paragraph{Quality review.} A pass on the hidden tests does not show that a ticket was implemented
+in general rather than for the tested inputs. We drew a stratified sample of successful attempts
+(\code{data/review/}, seed 20261015): 10 at random per variant, plus every remaining weak-model
+success, $N=38$ (27 strong, 11 weak). One reviewer, an AI agent, read each diff against the ticket
+and a fixed rubric. \emph{Genuine} implements the ticket generally, \emph{partial} passes the tests
+but drops a requirement for realistic inputs, and \emph{gaming} special-cases test data, hardcodes
+values, or weakens checks, tests or the build. For \LAY{} and \HEX{}, a \emph{major} architecture
+violation breaks an explicit rule of ARCHITECTURES.md, and a \emph{minor} one puts code in the wrong
+package without breaking a dependency rule. Of the 27 strong-model successes, 26 are genuine and
+one is partial (\LAY, R3, T10 silently drops addresses without a city); none games the tests. The
+weak model's 11 successes are weaker: 5 genuine, 4 partial, 2 gaming. Four of its five T01
+successes check \code{Quantity.unit} instead of the UCUM \code{code} the ticket names. The hidden
+T01 test sets both fields to the same value and cannot tell them apart, a coverage gap rather than a
+wrong test. The two gaming cases are T02 attempts in \NONE{} trajectories that a failed T01 had left
+uncompilable. Both restored the build by disabling baseline validation (commenting out
+\code{validate(observation)}, deleting \code{requireSupportedCodes} calls), and both caused
+regressions. Nine of the 11 weak-model successes left collateral such as backup files or
+placeholder tests. The architecture fits in 21 of the 24 sampled \LAY{} and \HEX{} attempts. The one
+major violation (\LAY, strong, R4, T16: HAPI \code{FhirContext} and \code{Parameters} imported into
+\code{service}) is also recorded by the conformance measure (six new \code{fhirModelOnlyInWeb}
+violations at that snapshot). The two minor ones are both \HEX{} T04 attempts that put the outbound
+notifier in \code{adapter.in.web} instead of behind an outbound port. Five of the 38 sampled
+successes (12 of all 173) also caused regressions, which are recorded separately as preregistered.
+
 % =====================================================================================
 \section{Discussion}\label{sec:discussion}
 
@@ -979,6 +1068,21 @@ the token measure is censored: within a fixed budget, tokens mostly reflect cont
 and a variant that needs more calls cannot show it. Second, the study has one domain and one capable
 model.
 
+\paragraph{What the success measure captures.} The post-hoc checks (\S\ref{sec:res-validity})
+support reading success as agent capability. Every task is solvable in every variant, so the 0\%
+success on T18 and T23 is a failure of the agents, not of the tests. Most strong-model T18 attempts
+(10 of 12) left a snapshot that did not build. T23 adds a library trap: the HAPI encoder drops the
+version from the audited reference, and this shows only in the serialized JSON, which an agent sees
+only if it inspects the actual response rather than the object it built. In Phase~1 no agent got
+that far; the three strong-model T23 snapshots that built and started passed none of the seven
+tests, including those the trap does not affect. Successes are real too: 26 of 27 sampled
+strong-model successes are genuine implementations, and none games the tests. The success rates in
+Table~\ref{tab:success} therefore measure working code, not test fitting, at least for the model
+that carries the results. One hidden test is weaker than its ticket. T01 cannot distinguish a check
+on the UCUM \code{code} from one on the display \code{unit}, and four of the weak model's 11
+successes exploit exactly this gap, which slightly overstates the weak model's already minimal
+success.
+
 \paragraph{Architecture changed the fate of the code.} Erosion grew in every arm: all 12
 strong-model trajectories ended with a higher index than they started with, and static warnings
 rose in every one of them. This is consistent with the notion of agentic
@@ -988,7 +1092,10 @@ almost every component, including duplication, warnings and the only package cyc
 Its conformance broke in three of four strong-model trajectories, mostly by HAPI FHIR types leaking
 out of the web layer. The hexagonal variant held its structure: no duplicated code was added, three
 of four strong-model trajectories never violated a hexagon rule, and its index slope matched that
-of \NONE.
+of \NONE. The quality review offers convergent evidence for the conformance measure: reading the code
+independently, the reviewer found the architecture intact in 21 of 24 sampled \LAY{} and \HEX{}
+successes, and the one major violation it found was also counted by the ArchUnit rules. The two minor
+misplacements it found break no dependency rule, so the conformance count, by design, misses them.
 
 We can offer only hypotheses for this difference. In \HEX{} the boundaries are visible in the code
 the agent reads. Ports are interfaces, adapters are named as such, and the domain has its own model
@@ -1016,7 +1123,11 @@ of the treatment (\S\ref{sec:threats}).
 predecessor study, despite a preregistered floor rule designed to prevent it. The rule was checked
 on three pilot tasks, each a single change to a fresh baseline, where Qwen3-Coder-30B passed. Under
 the cumulative protocol the model broke the build within the first three tasks of every trajectory
-and almost never recovered, so most of its 288 attempts started from a broken project. The lesson
+and almost never recovered, so most of its 288 attempts started from a broken project. The quality
+review shows how it ``recovered'' when it did: both of its gaming successes restored a build broken
+by a failed T01 by disabling baseline validation, and both caused regressions. A model that repairs a
+build by switching checks off rather than fixing the cause is consistent with the collapse to the
+floor that we observed. The lesson
 is that a capability check must use the real protocol, here a short sequence of cumulative tasks,
 and that the capability question needs a mid-capability model whose success is clearly above the
 floor in the cumulative setting. The preregistered fallback, Qwen3-Coder-Next, is a candidate.
@@ -1059,6 +1170,10 @@ a remedy, because success is itself an outcome. \emph{Excluded snapshots.} Non-c
 are left out of the slope fits. They are frequent (96, 96 and 111 of 192 per arm, mostly from the
 weak model) and, for the strong model, twice as frequent in \HEX{} (22 vs.\ 10 and 10 of 96). The
 slopes therefore describe different subsets, and the weak-model slopes rest on 2--6 points each.
+\emph{Success as passing hidden tests.} Tests can be passed without implementing a ticket. The
+quality review found no gaming among sampled strong-model successes, but it has limits: one
+reviewer, itself an AI agent, read the code without re-running it, knew each variant from the code
+structure, and the weak stratum is small (11 attempts, five of them T01).
 
 \paragraph{Internal validity.}
 \emph{Construction bias.} One author, assisted by AI agents, built all variants and tasks, and no
@@ -1066,7 +1181,14 @@ independent human review took place. Mitigations: a public reference style, the 
 equivalence gate (79 black-box tests, identical schema and dependencies), frozen ArchUnit rules,
 published size profiles and full release of all materials. AI-built variants may also be closer
 to what models find natural than human-written code would be. \emph{Task authoring.} Tickets are
-behavior-only and graded by identical black-box tests, but nobody else reviewed them.
+behavior-only and graded by identical black-box tests. The post-hoc reference solutions show that
+every hidden test can be satisfied in every variant and that no test contradicts its ticket or
+another test (\S\ref{sec:res-validity}). Residual limits: the reference solutions were written by
+AI agents, not by independent human developers, and no human outside the project reviewed the
+tickets. One ticket (T21) names a status the server cannot accept, and one hidden test (T01) is
+weaker than its ticket. \emph{Grading reliability.} The grader produced false failures when the
+Docker VM ran out of memory. Re-grading all 403 recorded failures at low load changed no outcome,
+so this threat is resolved for Phase~1.
 \emph{Provider drift.} Hosted models can change silently, and providers can re-route requests. We
 pinned model IDs, interleaved all arms in every worker, and logged the provider per call: a single
 provider served each model throughout. Drift during the 34-hour window would affect all arms
@@ -1118,7 +1240,8 @@ by running without network access. The materials will become public afterwards.
 The study ran on one laptop with Docker and a budget of USD~30. Most of the engineering effort
 went into problems that a well-funded lab may never see but that can silently bias a low-budget
 experiment. We record them because each one would have turned infrastructure behavior into
-apparent agent behavior. Lessons 1--8 were learned before registration, 9--11 during Phase~1.
+apparent agent behavior. Lessons 1--8 were learned before registration, 9--11 during Phase~1, and
+12--13 in the post-hoc checks.
 
 \paragraph{1. Free endpoints are not infrastructure.} We first planned to use free
 (\code{:free}) endpoints. \code{qwen/qwen3-coder:free} was withdrawn on 2026-10-11, and
@@ -1186,11 +1309,28 @@ above the floor, so that a mid-capability model is chosen.
 \code{git stash}, \code{checkout} or \code{reset}, and one agent ran \code{git reset --hard} and
 removed the previous task's commit from the branch. The harness must record the commit object it
 grades and measure exactly that object later, rather than walk the history the agent can rewrite.
+The sandbox isolates the network, not the repository: inside it the agent owns \code{.git}.
 
 \paragraph{11. Make outcome-blind decisions final.} The cost rule fired once, as designed, and the
 host stopped hours later. On restart, a runner that re-evaluated the rule from scratch could have
 reached a different decision on more data. The orchestrator now records the decision and treats it
 as final across restarts, and the restart itself is logged as a deviation.
+
+\paragraph{12. Memory overcommit makes graders fail silently.} On a laptop, Docker runs all containers in one
+VM with a fixed memory size (5.3\,GiB here). Several grading containers of 3\,GB each fit on paper
+but not in practice. When the VM runs out of memory, the kernel kills the application's JVM inside a
+grading container without any error in the grader's output, and every following test fails with a
+refused connection. The result looks like an agent that broke everything. Our Phase~1 grading was
+verified clean by re-grading all 403 failures (\S\ref{sec:res-validity}), but we found the problem
+only by chance, while building reference solutions in parallel. Future runs should cap parallel
+grading by the memory available in the VM, not by CPU count, and should treat a verdict in which
+every test fails with a connection error as an infrastructure failure to be retried.
+
+\paragraph{13. Build the reference solutions before registration.} We planned them but completed
+them only after data collection. They then showed that all tasks are solvable, but they also
+surfaced the T23 library trap and the T21 wording flaw. Before registration, both could have been
+fixed or deliberately kept and documented. Reference builds also exercise the grader at scale, which
+is how lesson~12 was found.
 
 % =====================================================================================
 \section{Conclusion}\label{sec:conclusion}
