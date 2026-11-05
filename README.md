@@ -72,8 +72,6 @@ python analysis/localization.py data/phase1   # exploratory command-mix and loca
 - [ ] Phase 2: order-management domain
 - [ ] Study 2: guardrails ([STUDY2-GUARDRAILS.md](STUDY2-GUARDRAILS.md))
 
-Predecessor study (exploratory, Python): *The Indirection Tax*.
-
 ## Citation and license
 
 See [CITATION.cff](CITATION.cff). Code: MIT ([LICENSE](LICENSE)). Text and data: CC BY 4.0.

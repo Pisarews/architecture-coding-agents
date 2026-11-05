@@ -114,11 +114,9 @@ comprehension and controlled change for human maintainers.
 
 LLM-based coding agents now take on a growing share of maintenance and feature work. They read
 code through a shell, not through an IDE and a mental model built over months. Two things are
-unclear. First, does the indirection that helps humans help agents, or does it tax them? Our
-earlier exploratory study on small Python repositories found a tax: equivalent code with ports
-and adapters lowered single-task success, more so for weaker models, mainly because the logic to
-change sat in opaquely named adapter files away from the entry point~\citep{pisarewski2026indirection}.
-That study covered neither realistic project size, nor Java, nor sustained evolution. Second, do
+unclear. First, does the indirection that helps humans help agents, or does it tax them? Existing
+evidence comes from single tasks on small code bases (\S\ref{sec:related}) and covers neither
+realistic project size, nor Java, nor sustained evolution. Second, do
 agents preserve an architecture while they evolve the code? Architecture erosion, the growing gap
 between intended and implemented architecture, is a classic problem of long-lived
 systems~\citep{perry1992foundations,lehman1980programs,desilva2012erosion,li2022erosionmapping}.
@@ -201,9 +199,7 @@ whether such effects compound over long-horizon evolution, which our cumulative 
 for architecture. Borg et al.~\citep{borg2026codehealth} relate file-level CodeHealth to
 LLM refactoring outcomes. Ustynov~\citep{ustynov2026beyond} revisits conventions written for human
 readers in light of agentic development and leaves architecture to future work. \emph{Theory of Code Space}~\citep{sapunov2026tocs}
-asks whether agents can build an architectural map of a code base. Our predecessor
-study~\citep{pisarewski2026indirection} asked whether indirection changes task success and traced
-the effect mainly to file naming. All of these work with single tasks or single snapshots.
+asks whether agents can build an architectural map of a code base. All of these work with single tasks or single snapshots.
 
 \paragraph{Architecture and agents.} Three recent works are closest in topic. \emph{Architecture as
 Capability Equalizer}~\citep{archequalizer2026} varies how an architecture is \emph{specified} to
@@ -290,8 +286,7 @@ The variants differ only in code organization (ARCHITECTURES.md):
 \end{itemize}
 The FHIR domain makes the placement of the standard model itself an architectural decision. In
 \NONE{} HAPI resource classes run through the whole code base. In \LAY{} they stop at the service
-boundary. In \HEX{} the domain has its own model and the FHIR mapping sits in one adapter, which is
-exactly the kind of indirection that was costly in the predecessor study.
+boundary. In \HEX{} the domain has its own model and the FHIR mapping sits in one adapter.
 
 \paragraph{Equivalence gate.} A variant was admitted only if (i)~it passes the shared black-box
 acceptance suite (79 tests over HTTP against the running jar, with FHIR R4 validation of every
@@ -394,8 +389,7 @@ because provider latency must never become an agent failure.
     ran to the output cap without a tool call, and in a shakedown 6 of 17 attempts ended in
     repeated format errors. With thinking off there were no format errors in 120 calls. This
     decision was made on reliability alone, before registration.
-  \item \emph{weak}: Qwen3-Coder-30B-A3B-Instruct~\citep{qwen3report}, the model used in the
-    cloud runs of the predecessor study. A preregistered floor rule would have replaced it with
+  \item \emph{weak}: Qwen3-Coder-30B-A3B-Instruct~\citep{qwen3report}. A preregistered floor rule would have replaced it with
     Qwen3-Coder-Next if it had solved fewer than 30\% of pilot attempts in \NONE. The rule was not
     triggered. Under the cumulative protocol the model nevertheless failed at the floor
     (\S\ref{sec:res-h4}).
@@ -573,7 +567,10 @@ sensitivity is lower.
 
 Preregistration fixes the confirmatory analysis before the data exist and so separates it from exploration~\citep{nosek2018preregistration}. The open-ended idea was registered on OSF on 2026-10-05 (\url{https://osf.io/w467e}). The full
 protocol was registered on 2026-10-13 at 09:25 UTC with the OSF Preregistration template
-(\url{https://osf.io/r5t3d}); it stayed under embargo until data collection ended. The registered materials are git tag
+(\url{https://osf.io/r5t3d}); it stayed under embargo until data collection ended. The registered protocol motivates the
+directional hypotheses in part with an earlier exploratory study of ours on small Python
+repositories. We later found methodological problems in that study, so this paper does not use its
+results as evidence. The registered materials are git tag
 \code{prereg-v1}, commit \code{3d347cb}. Before registration only harness-debugging data existed:
 three pilot tasks P1--P3 in all six cells (18 attempts) and one shakedown trajectory over T01--T24
 (\NONE, strong model). Both are excluded from every analysis. The models, settings, sandbox
@@ -1060,15 +1057,14 @@ interpretable. Two results nevertheless stand out. The hexagonal code base erode
 slowly than the layered one, and the layered one eroded fastest of all three. And the agent
 touched about twice as many files in \HEX{} without paying for it in tokens or success.
 
-\paragraph{No success or token penalty for a capable agent.} Our predecessor
-study~\citep{pisarewski2026indirection} found an indirection tax: on small Python repositories and
-single tasks, ports and adapters lowered success, more so for weaker models. Here, a stronger
-model working cumulatively on a larger Java service showed no such penalty. The structured variants
-cost the agent more edits (Table~\ref{tab:h1sec}), but not more tokens, calls or failures. Several
-differences between the studies could explain this: model capability, language and framework
-conventions (Spring's layered and hexagonal idioms are common in training data), size, and naming
-(the predecessor traced its tax mainly to opaquely named adapter files, whereas our variants
-follow a well-known reference style). Our design cannot separate them. Trivedi and
+\paragraph{No success or token penalty for a capable agent.} One might expect indirection to
+tax an agent that reads code through a shell: more files and more hops between a request and the
+logic it reaches. For a capable model working cumulatively on a Java service we found no such
+penalty. The structured variants cost the agent more edits (Table~\ref{tab:h1sec}), but not more
+tokens, calls or failures. Several factors could explain this: model capability, framework
+conventions (Spring's layered and hexagonal idioms are common in training data), and naming (our
+variants follow a well-known reference style with descriptive names). Our design cannot separate
+them. Trivedi and
 Schmitt~\citep{trivedi2026cleanliness} likewise find that a code property can leave pass rates
 unchanged while shifting effort, and Stoyanov's single-system comparison~\citep{stoyanov2026hexagonal}
 reported a slower hexagonal variant, whereas our secondary wall-time measure points the other way.
@@ -1129,8 +1125,8 @@ warning and conformance counts are not means and show the same pattern, which ma
 mechanical explanation less likely, but it remains a confound of the size difference that is part
 of the treatment (\S\ref{sec:threats}).
 
-\paragraph{The weak model and the floor.} The weak model reproduces the floor effect of the
-predecessor study, despite a preregistered floor rule designed to prevent it. The rule was checked
+\paragraph{The weak model and the floor.} The weak model failed at the floor despite a preregistered
+floor rule designed to prevent it. The rule was checked
 on three pilot tasks, each a single change to a fresh baseline, where Qwen3-Coder-30B passed. Under
 the cumulative protocol the model broke the build within the first three tasks of every trajectory
 and almost never recovered, so most of its 288 attempts started from a broken project. The quality
@@ -1316,7 +1312,7 @@ digests, and verified that CK reports no errors on the baselines.
 \paragraph{9. Test the capability floor under the real protocol.} Our floor rule checked the weak
 model on three single tasks against a fresh baseline, and it passed. In the cumulative protocol the
 same model broke the build within three tasks in all 12 trajectories and almost never repaired it,
-which made H4 uninterpretable. The predecessor study had the same problem. A floor check should run
+which made H4 uninterpretable. A floor check should run
 a short cumulative sequence (several tasks, each on top of the last) and require a clear margin
 above the floor, so that a mid-capability model is chosen.
 

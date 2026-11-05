@@ -65,11 +65,6 @@ building on its own earlier changes. All data is synthetic.
 - [ ] Data collection
 - [ ] Analysis + preprint
 
-## Prior work
-Exploratory predecessor: *The Indirection Tax* (Python minimal pairs). Ports-and-adapters
-indirection lowered agent task success 1.00 → 0.73 (14B) / 0.40 (7B).
-Preprint: TODO · Code: TODO
-
 ## Components
 | Component | Contents | Visibility |
 |---|---|---|
@@ -137,6 +132,5 @@ prereg **before** the OSF registration.
 ## 8. Publication
 - Preprint on arXiv (cs.SE) and/or OSF Preprints. Link the preprint from the OSF project.
 - The paper's "Data availability" section cites the OSF DOI, the prereg DOI, and the Zenodo DOI.
-- Under **Linked Projects**, link the Indirection Tax project (put it on OSF the same way).
 - Self-check the paper against the ACM SIGSOFT Empirical Standards ("Experiments" +
   "Registered Reports" if you take that path).
