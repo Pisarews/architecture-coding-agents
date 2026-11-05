@@ -3,7 +3,7 @@
     python analysis/review_agreement.py path/to/REVIEW-FORM.xlsx
 
 Prints and writes data/review/human_review_summary.json with: variant ratings (part A), ticket
-neutrality (part B), and for the 30 solutions (part C) the human counts, % agreement and Cohen's kappa
+neutrality (part B), and for the sampled solutions (part C; 20 since 2026-10-15, see human_key.json) the human counts, % agreement and Cohen's kappa
 with the AI reviewer, for correctness and architecture fit.
 """
 
