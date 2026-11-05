@@ -45,7 +45,20 @@ STUDY2-GUARDRAILS.md        planned follow-up: Copilot-style guardrails against 
 ```
 
 The raw data (transcripts, per-task git snapshots, result and erosion tables) are not in git; they
-are in the OSF project. Put them under `data/` to re-run the analysis.
+are in the OSF project. To re-run the analysis, unpack every zip into `data/phase1/` and restore the
+per-trajectory repositories from the git bundles:
+
+```bash
+cd data/phase1
+for f in /path/to/download/phase1-*.zip; do unzip -q "$f"; done
+for b in snapshots/*.bundle; do t=$(basename "$b" .bundle)
+  git clone -q "$b" "$t/repo" && git -C "$t/repo" fetch -q "../../$b" 'refs/tags/*:refs/tags/*'; done
+```
+
+`analysis/analyze.py` and `analysis/figures.py` need only `results.jsonl` and `erosion.jsonl`;
+`analysis/localization.py` also needs the transcripts and the restored repositories. From a clean
+clone this reproduces the paper's tests and figures exactly (the GLMM estimates agree to five
+decimals; its variational optimizer is not bit-for-bit deterministic).
 
 ## Reproducing
 
