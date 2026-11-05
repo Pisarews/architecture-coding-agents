@@ -573,7 +573,7 @@ sensitivity is lower.
 
 Preregistration fixes the confirmatory analysis before the data exist and so separates it from exploration~\citep{nosek2018preregistration}. The open-ended idea was registered on OSF on 2026-10-05 (\url{https://osf.io/w467e}). The full
 protocol was registered on 2026-10-13 at 09:25 UTC with the OSF Preregistration template
-(\url{https://osf.io/r5t3d}), under embargo until 2027-07-31. The registered materials are git tag
+(\url{https://osf.io/r5t3d}); it stayed under embargo until data collection ended. The registered materials are git tag
 \code{prereg-v1}, commit \code{3d347cb}. Before registration only harness-debugging data existed:
 three pilot tasks P1--P3 in all six cells (18 attempts) and one shakedown trajectory over T01--T24
 (\NONE, strong model). Both are excluded from every analysis. The models, settings, sandbox
@@ -950,10 +950,20 @@ with violations.
 test results with and without their change. One agent removed a graded commit from the history
 (deviation~4).
 
-\emph{Localization and qualitative coding.} The localization analysis (files read before the first
-edit vs.\ files changed) and the qualitative coding of failed attempts have not been carried out
-yet. They will be reported with the released transcripts. \TODO{run or explicitly defer the
-localization and qualitative-coding analyses before submission.}
+\emph{Localization and command mix.} We classified every bash command in the transcripts by
+keyword (read, search, edit, build or test, git, other) and, for each attempt, listed the Java files
+the agent read or searched before its first edit (\code{analysis/localization.py}; descriptive only).
+For the strong model, reading and searching made up 62\% of the commands, editing 14\% and builds or
+test runs 11\%. Before its first edit the agent ran 24.1, 24.4 and 32.8 commands and touched 11.4,
+19.0 and 28.1 distinct Java files in \NONE, \LAY{} and \HEX. Localization recall, the share of the
+main-code files it later changed that it had read before its first edit, was similar: 0.80, 0.76
+and 0.76. The hexagonal agent thus read about two and a half times as many files to find the same
+share of its edit targets, and it ran builds or tests less often (7\% of its commands vs.\ 12\% in
+\NONE{} and 14\% in \LAY), which is consistent with, but does not establish, a link to its higher
+rate of non-building snapshots. The weak model read less (5--8 files before its first edit) and
+reached a recall of about 0.59 in every variant. The keyword classification is coarse: a command
+that both searches and edits counts once, by the first matching rule. \emph{Qualitative coding} of
+failed attempts is deferred; the released transcripts make it possible for others to do it.
 
 \subsection{Post-hoc validity checks}\label{sec:res-validity}
 
@@ -1156,7 +1166,12 @@ mean LCOM and mean distance from the main sequence are averaged over more classe
 \HEX, so the same local change moves them less. \emph{Erosion index.} The index aggregates
 established metrics with equal weight. Some components, such as distance from the main sequence,
 depend on package structure and may behave differently by style. We therefore report the
-components separately (Table~\ref{tab:components}). \emph{Conformance} exists only for \LAY{} and
+components separately (Table~\ref{tab:components}). Averaged components can also fall below their
+baseline simply because an agent adds many small classes: in strong-model \NONE{} snapshots with a
+negative index, mean LCOM stood 2.7 scale units below baseline while maximum CBO stood 0.9 units
+above it. A negative index therefore does not mean the code became cleaner, and the averaged
+components favor styles that add many small classes, which is one more reason to read the
+component table next to the index. \emph{Conformance} exists only for \LAY{} and
 \HEX{}, and its rules differ between them, so violation counts are not on a common scale.
 \emph{Cost} includes cached prompt tokens, which are cheap in money but still measure how much
 context the agent processes. We report recomputed USD as a secondary measure. \emph{Step-limit
@@ -1354,12 +1369,18 @@ the erosion we observed.
 data): the three variants, specification and clarifications, tasks, hidden tests, harness, agent
 and model configuration, sandbox Dockerfiles, raw agent transcripts, per-task git snapshots,
 results and erosion tables, and analysis scripts. All data are synthetic. OSF project:
-\url{https://osf.io/rneym}. Registrations: \url{https://osf.io/r5t3d} (Phase~1, embargoed until
-2027-07-31) and \url{https://osf.io/w467e} (idea). Code: \TODO{GitHub URL and Zenodo DOI}.
+\url{https://osf.io/rneym}. Registrations: \url{https://osf.io/r5t3d} (Phase~1) and
+\url{https://osf.io/w467e} (idea). Code and materials:
+\url{https://github.com/Pisarews/architecture-coding-agents}; the frozen protocol is the git tag
+\code{prereg-v1}. Transcripts, snapshots and result tables are stored in the OSF project.
 
 \paragraph{Use of AI tools.} AI coding agents built the three variants from the author's
-specification under the author's review (\S\ref{sec:variants}). \TODO{Disclose AI assistance in
-harness development and in drafting this manuscript, following the target venue's policy.}
+specification under the author's review (\S\ref{sec:variants}). The author used an AI assistant
+(Claude, Anthropic) to write the harness, metrics pipeline and analysis scripts, to run the
+experiment, to carry out the AI quality review of successful attempts (\S\ref{sec:res-validity}),
+and to draft and edit this manuscript. The author designed the study, made the methodological
+decisions, reviewed the code, checked the reported numbers against the data, and takes
+responsibility for the content.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
