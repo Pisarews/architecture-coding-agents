@@ -17,6 +17,7 @@
 \usepackage{tabularx}
 \usepackage{multirow}
 \usepackage{graphicx}
+\usepackage{placeins}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \usepackage{tikz}
@@ -25,6 +26,11 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage[font=small,labelfont=bf,skip=6pt]{caption}
+% Float placement: allow up to three floats at the top of a page and fuller float pages, so that
+% tables and figures land close to the text that first refers to them.
+\setcounter{topnumber}{3}\setcounter{bottomnumber}{2}\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.85}\renewcommand{\bottomfraction}{0.5}
+\renewcommand{\textfraction}{0.12}\renewcommand{\floatpagefraction}{0.75}
 \usepackage[numbers,sort&compress]{natbib}
 \setlength{\bibsep}{1.5pt plus 0.5pt}
 \renewcommand{\bibfont}{\small}
@@ -233,7 +239,7 @@ reported here, covers the FHIR domain. A second domain (order management) is bui
 method and will be registered separately as Phase~2, where domain generality (H7) is tested.
 Figure~\ref{fig:pipeline} shows the data flow for one trajectory.
 
-\begin{figure}[t]\centering
+\begin{figure}[tbp]\centering
 \begin{tikzpicture}[
   box/.style={draw, rounded corners=2pt, align=center, font=\footnotesize, minimum height=1.05cm, inner sep=3pt},
   arr/.style={-{Stealth[length=2mm]}, thick},
@@ -298,7 +304,7 @@ and do not equalize them. Each variant also contains an \code{AGENTS.md} with th
 commands and a neutral, package-level layout description of equal length ($\pm$10\%) and no task
 hints.
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Size profile of the three baselines at the equivalence gate (2026-10-07). All pass the
 same 79-test acceptance suite.}
 \label{tab:size}
@@ -334,7 +340,7 @@ interface and may be named. Every ticket ends with acceptance criteria that the 
 tasks fall into four strata of six, interleaved in a fixed order that mimics product evolution
 (Table~\ref{tab:tasks}).
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Task strata. Units = architectural units a change is expected to touch.}
 \label{tab:tasks}
 \small
@@ -446,7 +452,7 @@ Java records. The tool therefore parses at JLS~21 and runs CK on a copy in which
 rewritten as a final class with the same fields. With this change, CK reports no errors on any
 baseline. The index has seven components (Table~\ref{tab:erosion}).
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Components of the erosion index (PREREGISTRATION \S4.3).}
 \label{tab:erosion}
 \small
@@ -492,7 +498,7 @@ on the unit of inference~\citep{good2005permutation}, implemented in \code{analy
 which was frozen with the registration and dry-run on the pilot data. Everything is seeded
 (20261012).
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Preregistered hypotheses for Phase 1 and their primary tests. Contrasts: \LAY$-$\NONE,
 \HEX$-$\NONE, \HEX$-$\LAY, Holm-corrected within each hypothesis. H7 (domain generality) needs
 Phase~2.}
@@ -617,7 +623,7 @@ retried 7 transient provider errors (HTTP 500/520, timeouts returned with HTTP 2
 reset); none ended an attempt. Every strong-model call was served by Poolside and every weak-model
 call by SiliconFlow. Of all prompt tokens, 91.7\% were served from the provider cache.
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Data collection summary (top) and task success rate by architecture and model, pooled
 over runs and tasks (bottom; successes / attempts in parentheses).}
 \label{tab:collection}\label{tab:success}
@@ -656,7 +662,7 @@ is close to an absorbing state: every later hidden test fails. The strong model 
 build at times (11--30\% of attempts, Table~\ref{tab:collection}) but usually recovered within a
 few tasks. Of the API cost, USD~6.66 was spent by the strong arm and USD~17.59 by the weak arm.
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Task-level primary tests (24 tasks): mean per-task difference, 95\% cluster bootstrap CI,
 sign-flip $p$, Holm-adjusted $p$. H3 in percentage points of success; H1 in $\log$ total tokens
 (positive = first arm more expensive); H4 is the interaction contrast weak-model effect minus
@@ -701,22 +707,15 @@ level; approximate 95\% posterior interval 0.66--1.71) and 1.17 for \LAY{} (0.69
 preregistered \code{dependency\_failed} sensitivity analysis is degenerate: no task declares a hard
 dependency (two have soft dependencies their hidden tests do not need, \S\ref{sec:tasks}), so the
 covariate is zero for every attempt and the model cannot be estimated.
-Figure~\ref{fig:success-cost}a shows success per architecture and model, and
-Figure~\ref{fig:strata} by task stratum.
+Figure~\ref{fig:success-cost}a shows success per architecture and model.
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.86\textwidth]{figures/fig_success.pdf}\\[-2pt]
+\begin{figure}[tbp]\centering
+\includegraphics[width=0.74\textwidth]{figures/fig_success.pdf}\\[-2pt]
 \small (a) task success rate, mean over tasks with 95\% bootstrap CI over tasks\\[4pt]
-\includegraphics[width=0.86\textwidth]{figures/fig_cost.pdf}\\[-2pt]
+\includegraphics[width=0.74\textwidth]{figures/fig_cost.pdf}\\[-2pt]
 \small (b) total tokens per attempt (geometric mean over tasks, 95\% bootstrap CI)
 \caption{Success and cost by architecture, separately for the two models.}
 \label{fig:success-cost}
-\end{figure}
-
-\begin{figure}[t]\centering
-\includegraphics[width=0.8\textwidth]{figures/fig_strata.pdf}
-\caption{Task success rate by task stratum and architecture, pooled over both models (descriptive).}
-\label{fig:strata}
 \end{figure}
 
 \subsection{H1: Cost}\label{sec:res-h1}
@@ -737,7 +736,7 @@ time was \emph{shorter} in \HEX, by 59\,s per attempt vs.\ \NONE{} and 66\,s vs.
 also reflects provider latency and build times inside the sandbox, so we do not interpret it
 further. Model calls, tokens of successful attempts and recomputed USD did not differ.
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{H1 secondary measures (top; mean per-task difference, 95\% CI, Holm-adjusted $p$ within
 each measure) and H5 (bottom; \HEX$-$\NONE{} $\Delta\log$ tokens by stratum, six tasks each, exact
 sign-flip test, smallest attainable two-sided $p=0.031$). Successful-attempt tokens use only the
@@ -783,7 +782,15 @@ I integration & & $0.013$ & $[-0.092,\ 0.123]$ & 0.844\\
 H5 is \emph{not supported} (Table~\ref{tab:h5}). The \HEX$-$\NONE{} cost difference was not larger
 in the multi-unit strata. The point estimate even has the opposite sign: \HEX{} was relatively
 cheaper in strata F, C and I than in D (difference $-0.19$ in $\log$ tokens, permutation
-$p=0.117$). No single stratum shows a significant difference.
+$p=0.117$). No single stratum shows a significant difference. Figure~\ref{fig:strata} shows success by stratum for comparison:
+domain-rule tasks (D) were solved most often in every variant, and within each stratum the
+variants differ by at most 6 percentage points (pooled over both models).
+
+\begin{figure}[tbp]\centering
+\includegraphics[width=0.62\textwidth]{figures/fig_strata.pdf}
+\caption{Task success rate by task stratum and architecture, pooled over both models (descriptive).}
+\label{fig:strata}
+\end{figure}
 
 \subsection{H4: Capability interaction}\label{sec:res-h4}
 
@@ -803,7 +810,7 @@ return to this in \S\ref{sec:discussion} and \S\ref{sec:lessons}.
 
 The index used all seven components (cycles, mean and max CBO, mean LCOM, mean distance from the
 main sequence, static warnings, duplicated lines); none was dropped for zero pooled spread.
-Table~\ref{tab:traj-tests} compares slopes, and Figure~\ref{fig:erosion}a shows the index over task
+Table~\ref{tab:traj-tests} compares slopes, and Figure~\ref{fig:erosion} shows the index over task
 position. H2 is \emph{not supported}. Neither structured variant eroded more slowly than \NONE: the
 mean \HEX{} slope equals the \NONE{} slope (0.0093 vs.\ 0.0091 index units per task, $p=0.99$), and
 the \LAY{} slope is about seven times larger (0.062), the opposite of the prediction, though not
@@ -811,6 +818,16 @@ significantly so ($p_\text{Holm}=0.34$). The one significant contrast is \HEX{} 
 hexagonal code base eroded more slowly than the layered one (difference $-0.052$ per task,
 $p=0.010$, $p_\text{Holm}=0.031$). H2 did not predict a direction for this contrast, so we read it
 as a finding about the two architectures, not as support for H2.
+
+\begin{figure}[tbp]\centering
+\includegraphics[width=0.8\textwidth]{figures/fig_erosion.pdf}
+\caption{Erosion index $E_{t,k}$ over task position: mean and 95\% band (normal approximation).
+Each point averages the trajectories (both models) whose snapshot compiles at that position. After
+position~3 almost all weak-model trajectories have dropped out (one \NONE{} trajectory compiles
+occasionally), so later positions mostly reflect the strong model, and the set of contributing
+trajectories changes from point to point.}
+\label{fig:erosion}
+\end{figure}
 
 The secondary LMM agrees in direction: the \LAY$\times$task-index interaction is $0.082$ per task
 (95\% CI $[0.009, 0.154]$, $p=0.028$) and the \HEX$\times$task-index interaction $0.016$
@@ -833,7 +850,7 @@ cycles, distance from the main sequence, LCOM and duplicated lines. Cycles appea
 gained no duplicated code at all: its CPD count stayed at zero in every compiling snapshot of every
 trajectory, while \LAY{} gained 40 and \NONE{} 17 duplicated lines on average.
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Trajectory-level tests: mean per-trajectory OLS slope per task for each arm of the
 contrast, and label-permutation tests stratified by model (8 vs.\ 8 trajectories). H2: erosion
 index. H6: own-architecture conformance violations; the last row is the one-sample sign-flip test
@@ -854,9 +871,9 @@ Contrast & slope (first arm) & slope (second arm) & $p$ & $p_\text{Holm}$\\
 slope $>0$, \LAY{} and \HEX{} & \multicolumn{2}{c}{0.751 [0.078, 1.810]} & 0.0625 & n/a\\
 \bottomrule
 \end{tabular}
-\end{table}
 
-\begin{table}[t]\centering
+\vspace{10pt}
+
 \caption{Exploratory: erosion components for the strong model (4 trajectories per arm). Left: mean
 change from baseline to the last compiling snapshot, in raw units. Right: mean standardized slope
 per task ($\times 100$), i.e.\ each component's contribution to the index slope (the index slope is
@@ -882,25 +899,21 @@ index slope ($\times 100$) & & & & 1.3 & 5.0 & 1.5\\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.86\textwidth]{figures/fig_erosion.pdf}\\[-2pt]
-\small (a) erosion index $E_{t,k}$, mean and 95\% band (normal approximation)\\[4pt]
-\includegraphics[width=0.86\textwidth]{figures/fig_conformance.pdf}\\[-2pt]
-\small (b) own-architecture rule violations (\LAY, \HEX)
-\caption{Erosion and conformance over task position. Each point averages the trajectories (both
-models) whose snapshot compiles at that position. After position~3 almost all weak-model
-trajectories have dropped out (one \NONE{} trajectory compiles occasionally), so later positions
-mostly reflect the strong model, and the set of contributing trajectories changes from point to
-point. In (b), the \HEX{} peaks at positions 16--17 and 22--23 come from a single trajectory
-(strong model, R3) at positions where the other \HEX{} trajectories did not compile; the other three
-strong-model \HEX{} trajectories had zero violations throughout.}
-\label{fig:erosion}\label{fig:conformance}
-\end{figure}
+
 
 \subsection{H6: Conformance}\label{sec:res-h6}
 
+\begin{figure}[tbp]\centering
+\includegraphics[width=0.8\textwidth]{figures/fig_conformance.pdf}
+\caption{Own-architecture rule violations over task position (\LAY, \HEX), averaged as in
+Figure~\ref{fig:erosion}. The \HEX{} peaks at positions 16--17 and 22--23 come from a single
+trajectory (strong model, R3) at positions where the other \HEX{} trajectories did not compile; the
+other three strong-model \HEX{} trajectories had zero violations throughout.}
+\label{fig:conformance}
+\end{figure}
+
 Own-architecture violations rose by 1.21 per task in \LAY{} and 0.29 in \HEX{} on average
-(difference $-0.93$, $p=0.553$; Table~\ref{tab:traj-tests}, Figure~\ref{fig:erosion}b). Both mean
+(difference $-0.93$, $p=0.553$; Table~\ref{tab:traj-tests}, Figure~\ref{fig:conformance}). Both mean
 slopes are positive, but the one-sample test of a non-zero mean slope gives $p=0.0625$ (separately:
 \LAY{} $p=0.125$, \HEX{} $p=1.00$). H6 is therefore \emph{not supported} at $\alpha=0.05$: the trend
 is upward, and \LAY{} and \HEX{} do not differ. The test had almost no room to succeed. Only five
@@ -972,7 +985,7 @@ after data collection. Two Phase~1 results prompted the checks: no agent attempt
 T23, and, while the reference solutions were being built, the grader produced false failures under
 heavy Docker load.
 
-\begin{table}[t]\centering
+\begin{table}[tbp]\centering
 \caption{Post-hoc validity checks (not preregistered; DEVIATIONS.md, 2026-10-15).}
 \label{tab:validity}
 \footnotesize
@@ -1047,6 +1060,7 @@ notifier in \code{adapter.in.web} instead of behind an outbound port. Five of th
 successes (12 of all 173) also caused regressions, which are recorded separately as preregistered.
 
 % =====================================================================================
+\FloatBarrier
 \section{Discussion}\label{sec:discussion}
 
 \paragraph{Summary.} Of the five interpretable preregistered hypotheses, none was supported.
